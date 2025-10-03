@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Espaço de Estados - Sistema Mecânico (React)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { background: #f3f3f7; font-family: sans-serif; margin: 0; }
+        .container { max-width: 1200px; margin: 24px auto; }
+        .sys-canvas {
+            position: relative;
+            width: 1100px;
+            height: 400px;
+            background: #e9e9f3;
+            border: 2px dashed #bbb;
+            border-radius: 12px;
+            margin: 24px auto 0 auto;
+            overflow: hidden;
+        }
+        .massa {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #a0522d; /* marrom */
+            border: 2.5px solid #5d2e0c; /* marrom escuro */
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #0001;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            user-select: none;
+            z-index: 10;
+            color: #fffbe6;
+        }
+        .massa.dragging {
+            opacity: 0.7;
+            z-index: 20;
+            box-shadow: 0 8px 24px #0003;
+            cursor: grabbing;
+        }
+        .massa input {
+            width: 40px;
+            margin-top: 2px;
+            background: #fffbe6;
+            color: #5d2e0c;
+            border: 1px solid #a0522d;
+            border-radius: 4px;
+        }
+        .spring, .damper {
+            position: absolute;
+            pointer-events: none;
+        }
+        .spring-line, .damper-line {
+            stroke-width: 4;
+        }
+        .spring-line { stroke: #43a047; }
+        .damper-line { stroke: #ff9800; }
+        .add-btn {
+            margin: 0 8px 0 0;
+            padding: 8px 18px;
+            background: #2196f3;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .output {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 20px;
+            min-height: 60px;
+        }
+        .wall {
+            position: absolute;
+            left: 0; top: 0; width: 20px; height: 100%;
+            background: repeating-linear-gradient(
+                135deg, #bbb, #bbb 6px, #e9e9f3 6px, #e9e9f3 12px
+            );
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Montagem de Sistema Mecânico (Espaço de Estados)</h2>
+    <div style="margin-bottom:12px;">
+        <button class="add-btn" onclick="window._addMassa && window._addMassa()">Adicionar Massa</button>
+        <button class="add-btn" onclick="window._addSpring && window._addSpring()">Adicionar Mola</button>
+        <button class="add-btn" onclick="window._addDamper && window._addDamper()">Adicionar Amortecedor</button>
+        <button class="add-btn" onclick="window._showEquations && window._showEquations()">Mostrar Equações e Espaço de Estados</button>
+    </div>
+    <div id="sys-canvas-root"></div>
+    <div class="output" id="output"></div>
+</div>
+{% raw %}
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+function distance(p1, p2) {
+    return Math.sqrt((p1.x-p2.x)**2 + (p1.y-p2.y)**2);
+}
+
+function Massa({massa, onDrag, onDragEnd, onChangeM, dragging}) {
+    const ref = useRef();
+    useEffect(() => {
+        if (!dragging) return;
+        function onMouseMove(e) {
+            onDrag(massa.id, e.clientX, e.clientY);
+        }
+        function onMouseUp() {
+            onDragEnd();
+        }
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+        return () => {
+            window.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("mouseup", onMouseUp);
+        };
+    }, [dragging]);
+    return (
+        <div
+            className={"massa" + (dragging ? " dragging" : "")}
+            style={{left: massa.x, top: massa.y}}
+            ref={ref}
+            onMouseDown={e => {
+                // Só inicia drag se não for no input
+                if (e.target.tagName === "INPUT") return;
+                if (e.button === 0) {
+                    e.preventDefault();
+                    onDrag(massa.id, e.clientX, e.clientY, true);
+                }
+            }}
+        >
+            <div style={{fontWeight:"bold"}}>Massa {massa.id+1}</div>
+            <div>
+                m = <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={massa.m}
+                    onClick={e => e.stopPropagation()}
+                    onChange={e => {
+                        e.stopPropagation();
+                        onChangeM(massa.id, parseFloat(e.target.value));
+                    }}
+                /> kg
+            </div>
+        </div>
+    );
+}
+
+// Mola com zig-zag (espiral simplificada)
+function SpringSVG({from, to}) {
+    // Calcula pontos para zig-zag
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const length = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx);
+    const n = Math.max(6, Math.floor(length / 18)); // número de "zigs"
+    const amp = 10; // amplitude do zig-zag
+    let points = [];
+    for (let i = 0; i <= n; ++i) {
+        const t = i / n;
+        const x = t * length;
+        const y = (i === 0 || i === n) ? 0 : (i % 2 === 0 ? amp : -amp);
+        points.push([x, y]);
+    }
+    // Rotaciona e translada os pontos
+    const pts = points.map(([x, y]) => {
+        const xr = x * Math.cos(angle) - y * Math.sin(angle) + from.x;
+        const yr = x * Math.sin(angle) + y * Math.cos(angle) + from.y;
+        return [xr, yr];
+    });
+    const path = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(" ");
+    return (
+        <svg className="spring" style={{
+            left: 0, top: 0, width: "100%", height: "100%", position: "absolute", pointerEvents: "none"
+        }}>
+            <path d={path} stroke="#43a047" strokeWidth="4" fill="none" />
+        </svg>
+    );
+}
+
+// Amortecedor: linha com segmento quadrado no meio
+function DamperSVG({from, to}) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const length = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx);
+    // Posição do retângulo (meio)
+    const midX = (from.x + to.x) / 2;
+    const midY = (from.y + to.y) / 2;
+    const rectLength = 24, rectHeight = 12;
+    // Pontos para linha antes e depois do retângulo
+    const frac = rectLength / length / 2;
+    const x1 = from.x + dx * (0.5 - frac);
+    const y1 = from.y + dy * (0.5 - frac);
+    const x2 = from.x + dx * (0.5 + frac);
+    const y2 = from.y + dy * (0.5 + frac);
+    return (
+        <svg className="damper" style={{
+            left: 0, top: 0, width: "100%", height: "100%", position: "absolute", pointerEvents: "none"
+        }}>
+            {/* Linha antes do retângulo */}
+            <line x1={from.x} y1={from.y} x2={x1} y2={y1} stroke="#ff9800" strokeWidth="4"/>
+            {/* Linha depois do retângulo */}
+            <line x1={x2} y1={y2} x2={to.x} y2={to.y} stroke="#ff9800" strokeWidth="4"/>
+            {/* Retângulo (corpo do amortecedor) */}
+            <rect
+                x={midX - rectLength/2 * Math.cos(angle) - rectHeight/2 * Math.sin(angle)}
+                y={midY - rectLength/2 * Math.sin(angle) + rectHeight/2 * Math.cos(angle)}
+                width={rectLength}
+                height={rectHeight}
+                fill="#ff9800"
+                stroke="#b26a00"
+                strokeWidth="2"
+                transform={`rotate(${angle*180/Math.PI},${midX},${midY})`}
+            />
+        </svg>
+    );
+}
+
+function Wall({y, height}) {
+    return <div className="wall" style={{top: y, height: height}} />;
+}
+
+function StateSystem() {
+    const [massas, setMassas] = useState([
+        {id: 0, m: 1, x: 100, y: 170}
+    ]);
+    const [springs, setSprings] = useState([]);
+    const [dampers, setDampers] = useState([]);
+    const [dragging, setDragging] = useState(null); // {id, dx, dy}
+    const [selecting, setSelecting] = useState(null); // {type: 'spring'|'damper', from: massaId or 'wall'}
+    const [output, setOutput] = useState("");
+    const canvasRef = useRef();
+
+    // Expor funções globais para botões
+    useEffect(() => {
+        window._addMassa = () => {
+            setMassas(massas => [
+                ...massas,
+                {id: massas.length, m: 1, x: 100 + 90*massas.length, y: 170}
+            ]);
+        };
+        window._addSpring = () => setSelecting({type: "spring", from: null});
+        window._addDamper = () => setSelecting({type: "damper", from: null});
+        window._showEquations = () => handleShowEquations();
+    }, [massas, springs, dampers]);
+
+    function handleDrag(id, clientX, clientY, start) {
+        if (start) {
+            const massa = massas.find(m => m.id === id);
+            setDragging({id, dx: clientX - massa.x, dy: clientY - massa.y});
+        } else if (dragging && dragging.id === id) {
+            setMassas(massas =>
+                massas.map(m =>
+                    m.id === id
+                        ? {...m, x: Math.max(30, Math.min(1000, clientX - dragging.dx)), y: Math.max(10, Math.min(330, clientY - dragging.dy))}
+                        : m
+                )
+            );
+        }
+    }
+    function handleDragEnd() {
+        setDragging(null);
+    }
+    function handleChangeM(id, val) {
+        setMassas(massas => massas.map(m => m.id === id ? {...m, m: val} : m));
+    }
+
+    // Seleção de massas para molas/amortecedores
+    function handleSelectMassa(massaId) {
+        if (!selecting) return;
+        if (selecting.from === null) {
+            setSelecting(sel => ({...sel, from: massaId}));
+        } else if (selecting.from !== massaId) {
+            // Adiciona mola/amortecedor entre selecting.from e massaId
+            if (selecting.type === "spring") {
+                const k = parseFloat(prompt("Constante da mola k (N/m):", "1")) || 1;
+                setSprings(springs => [...springs, {from: selecting.from, to: massaId, k}]);
+            } else {
+                const c = parseFloat(prompt("Constante do amortecedor c (N.s/m):", "1")) || 1;
+                setDampers(dampers => [...dampers, {from: selecting.from, to: massaId, c}]);
+            }
+            setSelecting(null);
+        }
+    }
+    function handleSelectWall() {
+        if (!selecting) return;
+        if (selecting.from === null) {
+            setSelecting(sel => ({...sel, from: "wall"}));
+        } else {
+            // Adiciona mola/amortecedor entre selecting.from e parede
+            if (selecting.type === "spring") {
+                const k = parseFloat(prompt("Constante da mola k (N/m):", "1")) || 1;
+                setSprings(springs => [...springs, {from: selecting.from, to: -1, k}]);
+            } else {
+                const c = parseFloat(prompt("Constante do amortecedor c (N.s/m):", "1")) || 1;
+                setDampers(dampers => [...dampers, {from: selecting.from, to: -1, c}]);
+            }
+            setSelecting(null);
+        }
+    }
+
+    function handleShowEquations() {
+        // Monta arrays para backend
+        const massesArr = massas.map(m => m.m);
+        const springsArr = springs.map(s => ({
+            from: typeof s.from === "number" ? s.from : massas.findIndex(m => m.x < 40), // parede = -1
+            to: s.to === -1 ? -1 : s.to,
+            k: s.k
+        }));
+        const dampersArr = dampers.map(d => ({
+            from: typeof d.from === "number" ? d.from : massas.findIndex(m => m.x < 40),
+            to: d.to === -1 ? -1 : d.to,
+            c: d.c
+        }));
+        fetch('/state_equation', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({masses: massesArr, springs: springsArr, dampers: dampersArr})
+        })
+        .then(r => r.json())
+        .then(res => {
+            // Apenas EDO e matriz A, ambos em LaTeX
+            setOutput(
+                `<div style="font-size:1.1em;">
+                    <span id="edo-latex">\\[${res.equation}\\]</span>
+                    <br>
+                    <span id="latexA">\\[${res.A_latex}\\]</span>
+                </div>`
+            );
+            setTimeout(() => { if (window.MathJax) MathJax.typesetPromise(); }, 100);
+        });
+    }
+
+    // Renderização
+    return (
+        <div>
+            <div className="sys-canvas" ref={canvasRef}>
+                <Wall y={0} height={400} />
+                {/* Molas */}
+                {springs.map((s, i) => {
+                    const from = s.from === "wall" || s.from === -1
+                        ? {x: 20, y: massas[0].y+30}
+                        : {x: massas[s.from].x+60, y: massas[s.from].y+30};
+                    const to = s.to === -1
+                        ? {x: 20, y: massas[0].y+30}
+                        : {x: massas[s.to].x, y: massas[s.to].y+30};
+                    return <SpringSVG key={i} from={from} to={to} />;
+                })}
+                {/* Amortecedores */}
+                {dampers.map((d, i) => {
+                    const from = d.from === "wall" || d.from === -1
+                        ? {x: 20, y: massas[0].y+30}
+                        : {x: massas[d.from].x+60, y: massas[d.from].y+30};
+                    const to = d.to === -1
+                        ? {x: 20, y: massas[0].y+30}
+                        : {x: massas[d.to].x, y: massas[d.to].y+30};
+                    return <DamperSVG key={i} from={from} to={to} />;
+                })}
+                {/* Massas */}
+                {massas.map(m =>
+                    <div
+                        key={m.id}
+                        style={{zIndex: 10}}
+                        onClick={() => selecting && handleSelectMassa(m.id)}
+                    >
+                        <Massa
+                            massa={m}
+                            onDrag={handleDrag}
+                            onDragEnd={handleDragEnd}
+                            onChangeM={handleChangeM}
+                            dragging={dragging && dragging.id === m.id}
+                        />
+                    </div>
+                )}
+                {/* Parede para seleção */}
+                {selecting &&
+                    <div
+                        style={{
+                            position: "absolute", left: 0, top: 0, width: 20, height: 400,
+                            background: "rgba(100,100,100,0.08)", zIndex: 20, cursor: "pointer"
+                        }}
+                        title="Clique para selecionar a parede"
+                        onClick={handleSelectWall}
+                    />
+                }
+                {/* Dica de seleção */}
+                {selecting &&
+                    <div style={{
+                        position: "absolute", left: 30, top: 10, background: "#fffde7",
+                        color: "#333", padding: "8px 16px", borderRadius: 8, zIndex: 30,
+                        border: "1.5px solid #2196f3", fontWeight: "bold"
+                    }}>
+                        {selecting.type === "spring" ? "Selecione as massas (ou parede) para conectar a mola" : "Selecione as massas (ou parede) para conectar o amortecedor"}
+                    </div>
+                }
+            </div>
+            <div className="output" id="output"
+                dangerouslySetInnerHTML={{__html: output}}
+            ></div>
+        </div>
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('sys-canvas-root')).render(<StateSystem />);
+</script>
+{% endraw %}
+<!-- MathJax para LaTeX -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</body>
+</html>

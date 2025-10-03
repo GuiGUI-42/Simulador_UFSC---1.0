@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulador PID</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { background: #f3f3f7; font-family: Arial, sans-serif; margin: 0; }
+        .container { display: flex; flex-direction: row; gap: 32px; padding: 32px; }
+        .left-panel, .right-panel {
+            background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 24px;
+        }
+        .left-panel { min-width: 340px; max-width: 400px; flex: 0 0 370px; }
+        .right-panel { flex: 1 1 0; min-width: 350px; }
+        h2 { margin-top: 0; }
+        .param-group { margin-bottom: 18px; }
+        .param-label { display: inline-block; width: 60px; }
+        .slider-row { display: flex; align-items: center; margin-bottom: 10px; }
+        .slider-row input[type="range"] { flex: 1; margin: 0 10px; }
+        .controller-type { margin-bottom: 18px; }
+        .controller-type label { margin-right: 18px; }
+        .section-title { margin-top: 24px; margin-bottom: 8px; font-size: 1.1em; font-weight: bold; }
+        .latex-container { margin: 8px 0; }
+        @media (max-width: 900px) {
+            .container { flex-direction: column; padding: 8px; }
+            .left-panel, .right-panel { max-width: 100%; min-width: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Painel de parâmetros -->
+        <div class="left-panel">
+            <h2>Simulador PID</h2>
+            <div class="section-title">Processo</div>
+            <div class="param-group">
+                <div style="margin-bottom: 12px;">
+                    <label for="ordem-sistema">Ordem do Sistema:</label>
+                    <select id="ordem-sistema"></select>
+                </div>
+                <div>
+                    <h4 style="margin: 8px 0 4px 0;">Polos</h4>
+                    <div id="planta-polos-col"></div>
+                    <h4 style="margin: 8px 0 4px 0;">Zeros</h4>
+                    <div id="planta-zeros-col"></div>
+                </div>
+                <div class="latex-container" id="plant-latex"></div>
+            </div>
+            <div class="section-title">Controlador</div>
+            <div class="controller-type">
+                <label><input type="radio" name="ctrl-type" value="P" checked> P</label>
+                <label><input type="radio" name="ctrl-type" value="I"> I</label>
+                <label><input type="radio" name="ctrl-type" value="PI"> PI</label>
+                <label><input type="radio" name="ctrl-type" value="PD"> PD</label>
+                <label><input type="radio" name="ctrl-type" value="PID"> PID</label>
+            </div>
+            <div class="param-group" id="ctrl-param-group">
+                <div class="slider-row" id="row-k">
+                    <span class="param-label">K:</span>
+                    <input id="ctrl-k" type="range" min="0" max="10" step="0.01" value="1">
+                    <input id="ctrl-k-val" type="number" min="0" max="10" step="0.01" value="1" style="width:60px;">
+                </div>
+                <div class="slider-row" id="row-ti">
+                    <span class="param-label">Ti:</span>
+                    <input id="ctrl-ti" type="range" min="0.01" max="10" step="0.01" value="1">
+                    <input id="ctrl-ti-val" type="number" min="0.01" max="10" step="0.01" value="1" style="width:60px;">
+                </div>
+                <div class="slider-row" id="row-td">
+                    <span class="param-label">Td:</span>
+                    <input id="ctrl-td" type="range" min="0" max="5" step="0.01" value="1">
+                    <input id="ctrl-td-val" type="number" min="0" max="5" step="0.01" value="1" style="width:60px;">
+                </div>
+                <div class="slider-row" id="row-n">
+                    <span class="param-label">N:</span>
+                    <input id="ctrl-n" type="range" min="1" max="50" step="1" value="10">
+                    <input id="ctrl-n-val" type="number" min="1" max="50" step="1" value="10" style="width:60px;">
+                </div>
+                <div class="slider-row" id="row-b">
+                    <span class="param-label">b:</span>
+                    <input id="ctrl-b" type="range" min="0" max="2" step="0.01" value="0.5">
+                    <input id="ctrl-b-val" type="number" min="0" max="2" step="0.01" value="0.5" style="width:60px;">
+                </div>
+            </div>
+            <div class="latex-container" id="ctrl-latex"></div>
+        </div>
+        <!-- Painel de gráficos -->
+        <div class="right-panel">
+            <h2>Gráficos</h2>
+            <div>
+                <div class="section-title">Saída do Processo</div>
+                <div id="plot-processo"></div>
+            </div>
+            <div>
+                <div class="section-title">Saída do Controlador</div>
+                <div id="plot-controlador"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+    // --- Processo: ordem, polos, zeros ---
+    function criarSelectOrdem() {
+        const select = document.getElementById('ordem-sistema');
+        select.innerHTML = '';
+        for (let i = 1; i <= 3; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `${i}ª ordem`;
+            select.appendChild(opt);
+        }
+        select.value = 1;
+        select.onchange = () => {
+            criarSlidersPlanta(Number(select.value));
+            atualizarTudo();
+        };
+    }
+    function criarSlidersPlanta(ordem) {
+        const polosCol = document.getElementById('planta-polos-col');
+        const zerosCol = document.getElementById('planta-zeros-col');
+        polosCol.innerHTML = '';
+        zerosCol.innerHTML = '';
+        for (let i = 1; i <= ordem; i++) {
+            polosCol.innerHTML += `
+                <div class="slider-row">
+                    <span class="param-label">Polo ${i}:</span>
+                    <input type="range" id="polo-planta-${i}" min="-10" max="1" step="0.01" value="-1">
+                    <input type="number" id="polo-planta-input-${i}" min="-10" max="1" step="0.01" value="-1" style="width:60px;">
+                </div>
+            `;
+            zerosCol.innerHTML += `
+                <div class="slider-row">
+                    <span class="param-label">Zero ${i}:</span>
+                    <input type="range" id="zero-planta-${i}" min="-10" max="10" step="0.01" value="0">
+                    <input type="number" id="zero-planta-input-${i}" min="-10" max="10" step="0.01" value="0" style="width:60px;">
+                </div>
+            `;
+        }
+        for (let i = 1; i <= ordem; i++) {
+            const sliderP = document.getElementById(`polo-planta-${i}`);
+            const inputP = document.getElementById(`polo-planta-input-${i}`);
+            sliderP.oninput = () => { inputP.value = sliderP.value; atualizarTudo(); };
+            inputP.oninput = () => { sliderP.value = inputP.value; atualizarTudo(); };
+            const sliderZ = document.getElementById(`zero-planta-${i}`);
+            const inputZ = document.getElementById(`zero-planta-input-${i}`);
+            sliderZ.oninput = () => { inputZ.value = sliderZ.value; atualizarTudo(); };
+            inputZ.oninput = () => { sliderZ.value = inputZ.value; atualizarTudo(); };
+        }
+    }
+    // --- Controlador: mostra/esconde parâmetros conforme tipo ---
+    function updateCtrlParams() {
+        const tipo = document.querySelector('input[name="ctrl-type"]:checked').value;
+        document.getElementById('row-k').style.display = '';
+        document.getElementById('row-ti').style.display = (tipo === 'PI' || tipo === 'I' || tipo === 'PID') ? '' : 'none';
+        document.getElementById('row-td').style.display = (tipo === 'PD' || tipo === 'PID') ? '' : 'none';
+        document.getElementById('row-n').style.display = (tipo === 'PD' || tipo === 'PID') ? '' : 'none';
+        document.getElementById('row-b').style.display = (tipo === 'PID') ? '' : 'none';
+    }
+    // --- Parâmetros para backend ---
+    function getParams() {
+        const ordem = parseInt(document.getElementById('ordem-sistema').value);
+        const polos = [];
+        const zeros = [];
+        for (let i = 1; i <= ordem; i++) {
+            polos.push(parseFloat(document.getElementById(`polo-planta-${i}`).value));
+            zeros.push(parseFloat(document.getElementById(`zero-planta-${i}`).value));
+        }
+        return {
+            ordem: ordem,
+            polos_planta: polos,
+            zeros_planta: zeros,
+            ctrl_type: document.querySelector('input[name="ctrl-type"]:checked').value,
+            ctrl_k: parseFloat(document.getElementById('ctrl-k').value),
+            ctrl_ti: parseFloat(document.getElementById('ctrl-ti').value),
+            ctrl_td: parseFloat(document.getElementById('ctrl-td').value),
+            ctrl_n: parseFloat(document.getElementById('ctrl-n').value),
+            ctrl_b: parseFloat(document.getElementById('ctrl-b').value)
+        };
+    }
+    function updateLatex() {
+        fetch('/pid_latex', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(getParams())
+        }).then(r => r.json()).then(json => {
+            document.getElementById('plant-latex').innerHTML = json.latex_plant;
+            document.getElementById('ctrl-latex').innerHTML = json.latex_ctrl;
+            if (window.MathJax) MathJax.typesetPromise();
+        });
+    }
+    function updatePlots() {
+        fetch('/pid_simular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(getParams())
+        }).then(r => r.json()).then(json => {
+            Plotly.newPlot('plot-processo', json.plot_processo.data, json.plot_processo.layout);
+            Plotly.newPlot('plot-controlador', json.plot_controlador.data, json.plot_controlador.layout);
+        });
+    }
+    function atualizarTudo() {
+        updateLatex();
+        updatePlots();
+    }
+    // --- Inicialização ---
+    window.onload = function() {
+        criarSelectOrdem();
+        criarSlidersPlanta(1);
+        updateCtrlParams();
+        // Sincronizar sliders e inputs do controlador
+        function syncSliderInput(sliderId, inputId) {
+            const slider = document.getElementById(sliderId);
+            const input = document.getElementById(inputId);
+            slider.addEventListener('input', () => { input.value = slider.value; atualizarTudo(); });
+            input.addEventListener('input', () => { slider.value = input.value; atualizarTudo(); });
+        }
+        syncSliderInput('ctrl-k', 'ctrl-k-val');
+        syncSliderInput('ctrl-ti', 'ctrl-ti-val');
+        syncSliderInput('ctrl-td', 'ctrl-td-val');
+        syncSliderInput('ctrl-n', 'ctrl-n-val');
+        syncSliderInput('ctrl-b', 'ctrl-b-val');
+        document.querySelectorAll('input[name="ctrl-type"]').forEach(r => r.addEventListener('change', () => {
+            updateCtrlParams();
+            atualizarTudo();
+        }));
+        atualizarTudo();
+    };
+    </script>
+</body>
+</html>

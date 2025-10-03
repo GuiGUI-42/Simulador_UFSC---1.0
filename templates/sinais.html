@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Sinais e Sistemas - Polinômio Característico</title>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <link rel="stylesheet" href="/static/css/slider-style.css">
+    <style>
+        /* Contêiner principal para layout horizontal */
+        .main-container {
+            display: flex;
+            flex-direction: row; /* Alinhamento horizontal */
+            gap: 20px; /* Espaçamento entre os contêineres */
+            width: 100%;
+        }
+
+        /* Contêiner de parâmetros */
+        .side-col {
+            flex: 1; /* Ocupa o espaço necessário */
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Contêiner de gráficos */
+        .main-col {
+            flex: 1; /* Ocupa o espaço necessário */
+            max-width: 50%; /* Limita a largura para caber ao lado */
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #plot-container {
+            display: flex;
+            flex-direction: column; /* Alinhamento vertical */
+            gap: 10px; /* Espaçamento entre os gráficos */
+        }
+
+        /* Centralizar o corpo da página com margem no topo */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alinhar ao topo */
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 20px; /* Margem no topo */
+        }
+
+        /* Ajustar o contêiner principal para centralização */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px; /* Limitar a largura máxima */
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu de hambúrguer -->
+    <div class="menu">
+        <div id="menu-hamburger">
+            <div class="menu-icon"></div>
+            <div class="menu-icon"></div>
+            <div class="menu-icon"></div>
+        </div>
+        <div class="menu-content" id="menu-content">
+            
+            <label>
+                <input id="dark-mode-toggle" type="checkbox">
+                Ativar Modo Escuro
+            </label>
+            <a href="/principal" class="menu-link">Página Inicial</a>
+            <div>Modelagem</div>
+            <a href="/state" class="menu-link">Espaço de Estados (Sistema Mecânico)</a>
+            <div>Sinais e Sistemas</div>
+            <a href="/estabilidade" class="menu-link">Estabilidade</a>
+            <a href="/sinais" class="menu-link">Resposta do Sistema</a>
+            <div>Controle</div>
+            <a href="/alocacao" class="menu-link">Alocação de Polos</a>
+            <a href="/raizes" class="menu-link">Lugar das Raízes</a>
+            <a href="/pagina2" class="menu-link">Malha Aberta</a>
+            <a href="/blocos" class="menu-link">Diagrama de Blocos</a>
+            <a href="/pagina4" class="menu-link">Simulador Completo</a>
+            <a href="/pid" class="menu-link">Avançado (PID)</a>
+            <a href="/discreto" class="menu-link">Discreto</a>
+            
+            <button id="abrir-feedback">Enviar Feedback</button>
+        </div>
+    </div>
+    <div style="height:56px;"></div>
+
+    <div class="container">
+        <!-- Modal -->
+        <div id="modalExplicacao" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div class="section-title">Polinômio Característico</div>
+                <p>
+                    O polinômio característico é uma ferramenta essencial para analisar a estabilidade e o comportamento de sistemas lineares invariantes no tempo (LTI). 
+                    Ele é obtido a partir da equação diferencial do sistema e suas raízes indicam as frequências naturais do sistema.
+                </p>
+                <p>
+                    Por exemplo, para a equação diferencial \( y''(t) + 5y'(t) + 6y(t) = x(t) \), o polinômio característico é dado por:
+                </p>
+                <p class="latex">
+                    \( P(s) = s^2 + 5s + 6 \)
+                </p>
+                <p>
+                    As raízes deste polinômio determinam a estabilidade do sistema:
+                    <ul>
+                        <li>Raízes com parte real negativa: Sistema estável.</li>
+                        <li>Raízes com parte real positiva: Sistema instável.</li>
+                        <li>Raízes com parte real zero: Sistema na fronteira da estabilidade.</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+
+        <!-- Layout principal -->
+        <div class="main-container">
+            <!-- Entrada de Parâmetros -->
+            <div class="side-col">
+                <div class="section-title">
+                    Parâmetros do Polinômio Característico
+                    <span class="info-icon" onclick="openModal()">&#9432;</span>
+                </div>
+                <div class="param-list">
+                    <label>Coeficientes do Polinômio:</label>
+                    <div id="polinomio-coef-list"></div>
+                    <button class="add-btn" onclick="addCoef()">Adicionar Coeficiente</button>
+                </div>
+                <div>
+                    <span class="latex" id="latex-polinomio"></span>
+                </div>
+                <div id="estabilidade-bibo" style="margin-top: 10px; font-weight: bold; color: #333;"></div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="main-col">
+                <div class="section-title">Gráficos</div>
+                <div id="plot-container">
+                    <div>
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                            <button id="seta-resposta-sistema" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
+                            <h3 style="margin: 0;">Resposta do Sistema</h3>
+                        </div>
+                        <div id="plot-resposta-sistema" style="display: none;"></div>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                            <button id="seta-resposta-degrau" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
+                            <h3 style="margin: 0;">Resposta ao Degrau</h3>
+                        </div>
+                        <div id="plot-resposta-degrau" style="display: none;"></div>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                            <button id="seta-resposta-senoidal" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
+                            <h3 style="margin: 0;">Resposta Senoidal</h3>
+                        </div>
+                        <div id="plot-resposta-senoidal" style="display: none;"></div>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                            <button id="seta-bode" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
+                            <h3 style="margin: 0;">Resposta em frequência</h3>
+                        </div>
+                        <div id="plot-bode" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado dos parâmetros
+        let coeficientes_polinomio = [1, 2]; // Exemplo inicial: s^2 + 5s + 6
+
+        // Funções para abrir e fechar o modal
+        function openModal() {
+            document.getElementById('modalExplicacao').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modalExplicacao').style.display = 'none';
+        }
+
+        // Renderizar lista de coeficientes
+        function renderCoefList() {
+            const container = document.getElementById('polinomio-coef-list');
+            container.innerHTML = '';
+            coeficientes_polinomio.forEach((val, idx) => {
+                const row = document.createElement('div');
+                row.className = 'param-row';
+                row.innerHTML = `<input type="number" class="input-inline" value="${val}" step="0.01"
+                    onchange="onCoefChange(${idx}, this.value)">
+                    <button class="remove-btn" onclick="removeCoef(${idx})">x</button>`;
+                container.appendChild(row);
+            });
+        }
+
+        function addCoef() {
+            coeficientes_polinomio.push(0);
+            renderCoefList();
+            updateAll();
+        }
+
+        function removeCoef(idx) {
+            coeficientes_polinomio.splice(idx, 1);
+            renderCoefList();
+            updateAll();
+        }
+
+        function onCoefChange(idx, value) {
+            coeficientes_polinomio[idx] = parseFloat(value);
+            updateAll();
+        }
+
+        function calcularModuloCaracteristico(coeficientes) {
+            const s = math.range(-10, 10, 0.1).toArray(); // Intervalo de s
+            const modulo = s.map(val => {
+                const valorPolinomio = coeficientes.reduce((acc, coef, idx) => acc + coef * Math.pow(val, coeficientes.length - idx - 1), 0);
+                return Math.abs(valorPolinomio);
+            });
+            return { s, modulo };
+        }
+
+        function atualizarModuloCaracteristico() {
+            try {
+                const { s, modulo } = calcularModuloCaracteristico(coeficientes_polinomio);
+
+                const data = [
+                    {
+                        x: s,
+                        y: modulo,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Módulo Característico'
+                    }
+                ];
+
+                const layout = {
+                    title: 'Módulo Característico',
+                    xaxis: { title: 's' },
+                    yaxis: { title: '|P(s)|' }
+                };
+
+                Plotly.newPlot('plot-modulo-caracteristico', data, layout, { responsive: true });
+            } catch (error) {
+                console.error('Erro ao atualizar o gráfico de módulo característico:', error);
+            }
+        }
+
+        function atualizarRespostaDegrau() {
+            try {
+                const t = math.range(0, 10, 0.1).toArray(); // Intervalo de tempo
+                const resposta = t.map(val => {
+                    return coeficientes_polinomio.reduce((acc, coef, idx) => acc + coef * Math.exp(-idx * val), 0);
+                });
+
+                const data = [
+                    {
+                        x: t,
+                        y: resposta,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Resposta ao Degrau'
+                    }
+                ];
+
+                const layout = {
+                    title: 'Resposta ao Degrau',
+                    xaxis: { title: 'Tempo (t)' },
+                    yaxis: { title: 'Amplitude' }
+                };
+
+                Plotly.newPlot('plot-resposta-degrau', data, layout, { responsive: true });
+            } catch (error) {
+                console.error('Erro ao atualizar o gráfico de resposta ao degrau:', error);
+            }
+        }
+
+        function calcularBode(coeficientes) {
+            const omega = math.range(0.1, 100, 0.1).toArray(); // Frequências angulares
+            const magnitude = [];
+            const fase = [];
+
+            omega.forEach(w => {
+                const s = math.complex(0, w); // s = jw
+                const valorPolinomio = coeficientes.reduce((acc, coef, idx) => {
+                    return acc.add(math.multiply(coef, math.pow(s, coeficientes.length - idx - 1)));
+                }, math.complex(0, 0));
+
+                magnitude.push(20 * Math.log10(math.abs(valorPolinomio))); // Magnitude em dB
+                fase.push(math.atan2(math.im(valorPolinomio), math.re(valorPolinomio)) * (180 / Math.PI)); // Fase em graus
+            });
+
+            return { omega, magnitude, fase };
+        }
+
+        function atualizarGraficoBode() {
+            try {
+                const { omega, magnitude, fase } = calcularBode(coeficientes_polinomio);
+
+                const data = [
+                    {
+                        x: omega,
+                        y: magnitude,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Magnitude (dB)',
+                        yaxis: 'y1'
+                    },
+                    {
+                        x: omega,
+                        y: fase,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Fase (graus)',
+                        yaxis: 'y2'
+                    }
+                ];
+
+                const layout = {
+                    title: 'Gráfico de Bode',
+                    xaxis: { title: 'Frequência Angular (rad/s)', type: 'log' },
+                    yaxis: { title: 'Magnitude (dB)', side: 'left' },
+                    yaxis2: {
+                        title: 'Fase (graus)',
+                        overlaying: 'y',
+                        side: 'right'
+                    }
+                };
+
+                Plotly.newPlot('plot-bode', data, layout, { responsive: true });
+            } catch (error) {
+                console.error('Erro ao atualizar o gráfico de Bode:', error);
+            }
+        }
+
+        function verificarEstabilidadeBIBO(coeficientes) {
+            try {
+                const grau = coeficientes.length - 1;
+
+                let raizes = [];
+                if (grau === 2) {
+                    // Fórmula de Bhaskara para polinômios de grau 2
+                    const [a, b, c] = coeficientes;
+                    const delta = b * b - 4 * a * c;
+
+                    if (delta >= 0) {
+                        raizes.push((-b + Math.sqrt(delta)) / (2 * a));
+                        raizes.push((-b - Math.sqrt(delta)) / (2 * a));
+                    } else {
+                        raizes.push({ re: -b / (2 * a), im: Math.sqrt(-delta) / (2 * a) });
+                        raizes.push({ re: -b / (2 * a), im: -Math.sqrt(-delta) / (2 * a) });
+                    }
+                } else if (grau === 1) {
+                    // Polinômio de grau 1: ax + b = 0
+                    const [a, b] = coeficientes;
+                    raizes.push(-b / a);
+                } else {
+                    console.error('Somente polinômios de grau 1 e 2 são suportados nesta implementação.');
+                    return 'Erro: Apenas polinômios de grau 1 e 2 são suportados.';
+                }
+
+                let temParteRealPositiva = false;
+                let temParteRealZero = false;
+
+                raizes.forEach(raiz => {
+                    const parteReal = typeof raiz === 'object' ? raiz.re : raiz;
+                    if (parteReal > 0) temParteRealPositiva = true;
+                    if (parteReal === 0) temParteRealZero = true;
+                });
+
+                if (temParteRealPositiva) {
+                    return 'O sistema é instável.';
+                } else if (temParteRealZero) {
+                    return 'O sistema é marginalmente estável.';
+                } else {
+                    return 'O sistema é estável.';
+                }
+            } catch (error) {
+                console.error('Erro ao verificar estabilidade:', error);
+                return 'Erro ao calcular estabilidade.';
+            }
+        }
+
+        function togglePlotVisibility(buttonId, plotId) {
+            const button = document.getElementById(buttonId);
+            const plot = document.getElementById(plotId);
+            if (plot.style.display === 'none' || plot.style.display === '') {
+                plot.style.display = 'block';
+                button.innerHTML = '&#x25B2;'; // Seta para cima
+            } else {
+                plot.style.display = 'none';
+                button.innerHTML = '&#x25BC;'; // Seta para baixo
+            }
+        }
+
+        function updateAll() {
+            try {
+                renderizarFT(coeficientes_polinomio);
+                const mensagemEstabilidade = verificarEstabilidadeBIBO(coeficientes_polinomio);
+                document.getElementById('estabilidade-bibo').innerText = mensagemEstabilidade;
+
+                atualizarRespostaSistema();
+                atualizarRespostaDegrau();
+                atualizarRespostaSenoidal();
+                atualizarGraficoBode();
+                atualizarModuloCaracteristico();
+
+                if (window.MathJax) MathJax.typesetPromise();
+            } catch (error) {
+                console.error('Erro ao atualizar:', error);
+            }
+        }
+
+        // Alternar visibilidade dos gráficos
+        function togglePlotVisibility(buttonId, plotId) {
+            const button = document.getElementById(buttonId);
+            const plot = document.getElementById(plotId);
+            if (plot.style.display === 'none' || plot.style.display === '') {
+                plot.style.display = 'block';
+                button.innerHTML = '&#x25B2;'; // Seta para cima
+            } else {
+                plot.style.display = 'none';
+                button.innerHTML = '&#x25BC;'; // Seta para baixo
+            }
+        }
+
+        function atualizarRespostaSistema() {
+            try {
+                const { s, modulo } = calcularModuloCaracteristico(coeficientes_polinomio);
+
+                const data = [
+                    {
+                        x: s,
+                        y: modulo,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Resposta do Sistema'
+                    }
+                ];
+
+                const layout = {
+                    title: 'Resposta do Sistema',
+                    xaxis: { title: 's' },
+                    yaxis: { title: '|P(s)|' }
+                };
+
+                Plotly.newPlot('plot-resposta-sistema', data, layout, { responsive: true });
+            } catch (error) {
+                console.error('Erro ao atualizar o gráfico de resposta do sistema:', error);
+            }
+        }
+
+        function atualizarRespostaSenoidal() {
+            try {
+                const A = 1; // Amplitude da entrada senoidal
+                const omega = 2 * Math.PI; // Frequência angular (1 Hz)
+                const t = math.range(0, 10, 0.1).toArray(); // Intervalo de tempo
+
+                // Resposta senoidal (exemplo simples, pode ser ajustado para sistemas mais complexos)
+                const resposta = t.map(val => {
+                    return A * Math.sin(omega * val) * Math.exp(-0.5 * val); // Exemplo com decaimento exponencial
+                });
+
+                const data = [
+                    {
+                        x: t,
+                        y: resposta,
+                        type: 'scatter',
+                        mode: 'lines',
+                        name: 'Resposta Senoidal'
+                    }
+                ];
+
+                const layout = {
+                    title: 'Resposta Senoidal',
+                    xaxis: { title: 'Tempo (t)' },
+                    yaxis: { title: 'Amplitude' }
+                };
+
+                Plotly.newPlot('plot-resposta-senoidal', data, layout, { responsive: true });
+            } catch (error) {
+                console.error('Erro ao atualizar o gráfico de resposta senoidal:', error);
+            }
+        }
+
+        function renderizarFT(coeficientes) {
+    const polinomioLatex = coeficientes
+        .map((coef, idx) => {
+            const expoente = coeficientes.length - idx - 1;
+            return coef !== 0 ? `${coef}s^{${expoente}}` : '';
+        })
+        .filter(term => term !== '')
+        .join(' + ');
+
+    // Atualiza o LaTeX no elemento HTML
+    document.getElementById('latex-polinomio').innerHTML = `\\( P(s) = ${polinomioLatex} \\)`;
+
+    // Reprocessa o MathJax para renderizar o LaTeX
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+}
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function () {
+            renderCoefList();
+            updateAll();
+
+            document.getElementById('seta-resposta-sistema').onclick = () => togglePlotVisibility('seta-resposta-sistema', 'plot-resposta-sistema');
+            document.getElementById('seta-resposta-degrau').onclick = () => togglePlotVisibility('seta-resposta-degrau', 'plot-resposta-degrau');
+            document.getElementById('seta-resposta-senoidal').onclick = () => togglePlotVisibility('seta-resposta-senoidal', 'plot-resposta-senoidal');
+            document.getElementById('seta-bode').onclick = () => togglePlotVisibility('seta-bode', 'plot-bode');
+        });
+
+        // Menu Hambúrguer
+const menuHamburger = document.getElementById('menu-hamburger');
+const menuContent = document.getElementById('menu-content');
+
+// Abrir o menu ao passar o mouse por cima
+menuHamburger.addEventListener('mouseover', function () {
+    menuContent.classList.add('show');
+});
+
+// Fechar o menu ao tirar o mouse de cima
+menuHamburger.addEventListener('mouseout', function () {
+    menuContent.classList.remove('show');
+});
+
+// Garantir que o menu não feche ao passar o mouse sobre ele
+menuContent.addEventListener('mouseover', function () {
+    menuContent.classList.add('show');
+});
+
+menuContent.addEventListener('mouseout', function () {
+    menuContent.classList.remove('show');
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulador de FT Discreta</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { background: #f3f3f7; font-family: sans-serif; margin: 0; }
+        .container {
+            max-width: 1100px;
+            margin: 32px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px #0001;
+            padding: 32px 24px 24px 24px;
+        }
+        .param-section {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .param-block {
+            min-width: 220px;
+            flex: 1;
+        }
+        .latex-container {
+            background: #f9f9fc;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+            word-break: break-word;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 10px; }
+            .param-section { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Simulador de Função de Transferência Discreta</h2>
+        <div class="param-section">
+            <div class="param-block">
+                <label for="ordem">Ordem do Sistema:</label>
+                <select id="ordem">
+                    <option value="1">1ª Ordem</option>
+                    <option value="2" selected>2ª Ordem</option>
+                    <option value="3">3ª Ordem</option>
+                </select>
+                <div id="polos-zeros-inputs" style="margin-top: 12px;"></div>
+                <div style="margin-top: 12px;">
+                    <label for="Ts">Período de Amostragem (s):</label>
+                    <input id="Ts" type="number" min="0.01" max="10" step="0.01" value="0.1" style="width:80px;">
+                </div>
+            </div>
+            <div class="param-block">
+                <b>Função de Transferência no Domínio Contínuo:</b>
+                <div id="latex-Gs" class="latex-container"></div>
+                <b>Função de Transferência no Domínio Discreto:</b>
+                <div id="latex-Gz" class="latex-container"></div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+            <div style="flex:1; min-width:320px;">
+                <h4>Resposta ao Degrau (Contínua)</h4>
+                <div id="plot-continuo"></div>
+            </div>
+            <div style="flex:1; min-width:320px;">
+                <h4>Resposta ao Degrau (Discreta)</h4>
+                <div id="plot-discreto"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function renderPolosZerosInputs() {
+            const ordem = parseInt(document.getElementById("ordem").value);
+            const container = document.getElementById("polos-zeros-inputs");
+            container.innerHTML = "";
+            for (let i = 1; i <= ordem; i++) {
+                container.innerHTML += `
+                    <div style="margin-bottom:8px;">
+                        <span>Polo ${i}:</span>
+                        <input id="polo_${i}" type="number" step="0.01" value="-1" style="width:70px; margin-left:8px;">
+                        <span style="margin-left:18px;">Zero ${i}:</span>
+                        <input id="zero_${i}" type="number" step="0.01" value="0" style="width:70px; margin-left:8px;">
+                    </div>
+                `;
+            }
+        }
+
+        async function atualizarDiscreto() {
+            const ordem = parseInt(document.getElementById("ordem").value);
+            const Ts = parseFloat(document.getElementById("Ts").value);
+            const data = { ordem, Ts };
+            for (let i = 1; i <= ordem; i++) {
+                data[`polo_${i}`] = parseFloat(document.getElementById(`polo_${i}`).value);
+                data[`zero_${i}`] = parseFloat(document.getElementById(`zero_${i}`).value);
+            }
+            const res = await fetch('/atualizar_discreto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            document.getElementById("latex-Gs").innerHTML = json.latex_Gs;
+            document.getElementById("latex-Gz").innerHTML = json.latex_Gz;
+            if (window.MathJax) MathJax.typesetPromise();
+
+            Plotly.newPlot('plot-continuo', [{
+                x: json.plot_continuo.x,
+                y: json.plot_continuo.y,
+                mode: "lines",
+                name: "Contínua"
+            }], {
+                title: "",
+                xaxis: { title: "Tempo (s)" },
+                yaxis: { title: "Saída" }
+            }, {displayModeBar: false});
+
+            Plotly.newPlot('plot-discreto', [{
+                x: json.plot_discreto.x,
+                y: json.plot_discreto.y,
+                mode: "markers+lines",
+                marker: { size: 7, color: "#ff9800" },
+                line: { dash: "dot", color: "#ff9800" },
+                name: "Discreta"
+            }], {
+                title: "",
+                xaxis: { title: "Tempo (s)" },
+                yaxis: { title: "Saída" }
+            }, {displayModeBar: false});
+        }
+
+        document.getElementById("ordem").addEventListener("change", () => {
+            renderPolosZerosInputs();
+            atualizarDiscreto();
+        });
+
+        document.getElementById("Ts").addEventListener("input", atualizarDiscreto);
+
+        function addInputEvents() {
+            const ordem = parseInt(document.getElementById("ordem").value);
+            for (let i = 1; i <= ordem; i++) {
+                document.getElementById(`polo_${i}`).addEventListener("input", atualizarDiscreto);
+                document.getElementById(`zero_${i}`).addEventListener("input", atualizarDiscreto);
+            }
+        }
+
+        window.onload = () => {
+            renderPolosZerosInputs();
+            addInputEvents();
+            atualizarDiscreto();
+            document.getElementById("ordem").addEventListener("change", addInputEvents);
+        };
+    </script>
+</body>
+</html>

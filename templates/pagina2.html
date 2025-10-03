@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Controle - Malha Aberta</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/slider-style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            overflow-y: auto;
+        }
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f3f3f7;
+            zoom: 0.9;
+            transition: background 0.3s, color 0.3s;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+            width: 100vw;
+            align-items: flex-start;
+            box-sizing: border-box;
+            justify-content: center;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+        .left-section {
+            flex: 0 0 30%;
+            width: 30%;
+            min-width: 350px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #0001;
+            padding: 16px;
+            box-sizing: border-box;
+            margin-bottom: 0;
+            position: sticky;
+            top: 56px;
+            z-index: 10;
+        }
+        .right-section {
+            flex: 1 1 0;
+            width: 100%;
+            min-width: 0;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px #0001;
+            padding: 0px 16px 16px 16px;
+            box-sizing: border-box;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #malha-aberta-container, #plot_pz {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+        .param-section {
+            margin-bottom: 18px;
+        }
+        .param-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .param-input {
+            width: 55px;
+            min-width: 0;
+            margin-right: 2px;
+        }
+        .param-input[type="number"] {
+    border: 2px solid #fff !important;
+    background: #f9f9fb;
+    border-radius: 4px;
+}
+        .param-slider {
+            width: 90px;
+            min-width: 0;
+            margin-right: 2px;
+        }
+        .remove-btn {
+            background: #d9534f;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 8px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-left: 2px;
+        }
+        .add-btn {
+            background: #5cb85c;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 4px 12px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+        .latex-container {
+            margin-top: 8px;
+            word-break: break-word;
+            max-width: 100%;
+        }
+        #plot_pz, #plot_open {
+            width: 100% !important;
+            height: 480px !important; /* aumente se quiser mais altura */
+            max-width: 100% !important;
+            min-width: 0;
+            margin: 0;
+            display: block;
+            box-sizing: border-box;
+            padding: 0;
+        }
+        #nyquist-img {
+            display: block;
+        }
+        #modal-feedback {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .menu-link {
+            margin: 8px 0;
+        }
+        /* Menu hamburguer igual pagina4 */
+        .menu-icon {
+            width: 28px;
+            height: 4px;
+            background: #1976d2;
+            margin: 3px 0;
+            border-radius: 2px;
+        }
+        /* === Adicionado: estilo do menu-content igual pagina4 === */
+        .menu-content {
+            display: none;
+            position: absolute;
+            left: 40px;
+            top: 0;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            padding: 18px 18px 18px 18px;
+            min-width: 260px;
+            z-index: 1001;
+        }
+        .menu.open .menu-content,
+        .menu:hover .menu-content,
+        .menu:focus-within .menu-content {
+            display: block;
+        }
+        .menu.open,
+        .menu:hover,
+        .menu:focus-within {
+            z-index: 1002;
+        }
+        .right-section > div {
+    margin-bottom: 8px !important; /* diminui o espaçamento entre os gráficos */
+}
+    </style>
+</head>
+<body>
+    <!-- Menu de hambúrguer -->
+    <div class="menu" style="position:fixed; top:8px; left:8px; z-index:1000;">
+        <button id="menu-toggle-btn" style="background:none;border:none;cursor:pointer;padding:0;margin-right:8px;">
+            <div style="display:flex; flex-direction:column;">
+                <div class="menu-icon"></div>
+                <div class="menu-icon"></div>
+                <div class="menu-icon"></div>
+            </div>
+        </button>
+        <div class="menu-content">
+            <label>
+                <input id="dark-mode-toggle" type="checkbox">
+                <span id="dark-mode-icon">🌙</span>
+            </label>
+            <a href="/principal" class="menu-link" style="margin-top:16px;">Página Inicial</a>
+            <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Modelagem</div>
+            <a href="/state" class="menu-link" style="margin-top:0;">Espaço de Estados</a>
+            <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Sinais e Sistemas</div>
+            <a href="/sinais" class="menu-link" style="margin-top:0;">Resposta do Sistema</a>
+            <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Controle</div>
+            <a href="/alocacao" class="menu-link" style="margin-top:0;">Alocação de Polos</a>
+            <a href="/raizes" class="menu-link" style="margin-top:0;">Lugar das Raízes</a>
+            <a href="/blocos" class="menu-link" style="margin-top:0;">Diagrama de Blocos</a>
+            <a href="/simuladorcomp" class="menu-link" style="margin-top:0;">Simulador Completo</a>
+            <a href="/pid" class="menu-link" style="margin-top:0;">Avançado (PID)</a>
+            <a href="/discreto" class="menu-link" style="margin-top:0;">Discreto</a>
+            <button id="abrir-feedback" style="margin-top:10px;">Enviar Feedback</button>
+        </div>
+    </div>
+    <div style="height:56px;"></div>
+
+    <!-- Container principal -->
+    <div class="main-container">
+        <!-- Seção Esquerda: Parâmetros da Planta -->
+        <div class="left-section">
+            <h3 style="margin-top:0;">Ajuste de Parâmetros</h3>
+            <div style="margin-bottom: 20px;">
+                <h4>Planta</h4>
+                <div style="display: flex; gap: 24px;">
+                    <div class="param-section" id="polos-section">
+                        <div class="param-title" style="font-size:1em;font-weight:normal;margin-bottom:2px;">Polos da Planta:</div>
+                        <div id="polos-list"></div>
+                        <button type="button" class="add-btn" id="add-polo-btn">Adicionar Polo</button>
+                    </div>
+                    <div class="param-section" id="zeros-section">
+                        <div class="param-title" style="font-size:1em;font-weight:normal;margin-bottom:2px;">Zeros da Planta:</div>
+                        <div id="zeros-list"></div>
+                        <button type="button" class="add-btn" id="add-zero-btn">Adicionar Zero</button>
+                    </div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <b>Função de Transferência da Planta:</b>
+                    <select id="select-ft-planta" style="margin-left: 8px;">
+                        <option value="fatorada">Fatorada</option>
+                        <option value="polinomial">Polinomial</option>
+                        <option value="parcial">Fração Parcial</option>
+                    </select>
+                    <div id="latex_planta_fatorada" class="latex-container" style="margin-top:8px;"></div>
+                    <div id="latex_planta_polinomial" class="latex-container" style="margin-top:8px; display:none;"></div>
+                    <div id="latex_planta_parcial" class="latex-container" style="margin-top:8px; display:none;"></div>
+                </div>
+            </div>
+            <div id="nyquist-container" style="margin-top:24px;">
+                <h4>Diagrama de Nyquist</h4>
+                <button id="seta-grafico-nyquist" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25B6;</button>
+                <img id="nyquist-img" src="" alt="Diagrama de Nyquist" style="max-width:90%;border:1px solid #ccc; display:none;">
+            </div>
+        </div>
+        <!-- Seção Direita: Gráficos -->
+        <div class="right-section">
+            <h3>Gráficos</h3>
+            <div style="margin-bottom: 2px; width: 100%;">
+    <div style="display: flex; align-items: center;">
+        <button id="seta-grafico-pz" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25B6;</button>
+        <h4 style="margin: 0 8px 0 0;">Diagrama de Polos e Zeros</h4>
+    </div>
+    <div id="plot_pz" style="display:none; width: 100%;"></div>
+</div>
+<div id="malha-aberta-container" style="width: 100%; margin-top: 8px;">
+    <div style="display: flex; align-items: center;">
+        <button id="seta-grafico-open" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25B6;</button>
+        <h4 style="margin: 0 8px 0 0;">Resposta ao Degrau </h4>
+    </div>
+    <div id="plot_open" style="display:none; width: 100%;"></div>
+</div>
+        </div>
+    </div>
+
+    <!-- Modal de Feedback -->
+    <div id="modal-feedback" class="modal">
+        <div class="modal-content">
+            <span class="close" id="fechar-modal">&times;</span>
+            <h3>Envie seu Feedback</h3>
+            <textarea id="feedback-texto" rows="6" style="width: 100%;" placeholder="Digite seu feedback aqui..."></textarea>
+            <button id="enviar-feedback">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+    // --- Estado dos polos e zeros da planta ---
+    let polosPlanta = [-1];
+    let zerosPlanta = [0];
+
+    // --- Renderiza os inputs dos polos e zeros no estilo da imagem ---
+    function renderPlantaInputs() {
+        // Polos
+        const polosList = document.getElementById('polos-list');
+        polosList.innerHTML = '';
+        polosPlanta.forEach((val, idx) => {
+            const row = document.createElement('div');
+            row.className = 'input-row';
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="polo-planta-slider-${idx}" min="-10" max="1" step="0.01" value="${val}">
+                <input type="number" class="param-input" id="polo-planta-input-${idx}" min="-10" max="1" step="0.01" value="${val}">
+                <button type="button" class="remove-btn" id="remove-polo-${idx}" title="Remover Polo">&times;</button>
+            `;
+            polosList.appendChild(row);
+
+            // Input numérico
+            document.getElementById(`polo-planta-input-${idx}`).oninput = function() {
+                polosPlanta[idx] = parseFloat(this.value);
+                document.getElementById(`polo-planta-slider-${idx}`).value = this.value;
+                atualizar();
+            };
+            // Slider
+            document.getElementById(`polo-planta-slider-${idx}`).oninput = function() {
+                polosPlanta[idx] = parseFloat(this.value);
+                document.getElementById(`polo-planta-input-${idx}`).value = this.value;
+                atualizar();
+            };
+            // Remover
+            document.getElementById(`remove-polo-${idx}`).onclick = function() {
+                if (polosPlanta.length > 1) {
+                    polosPlanta.splice(idx, 1);
+                    renderPlantaInputs();
+                    atualizar();
+                }
+            };
+        });
+
+        // Zeros
+        const zerosList = document.getElementById('zeros-list');
+        zerosList.innerHTML = '';
+        zerosPlanta.forEach((val, idx) => {
+            const row = document.createElement('div');
+            row.className = 'input-row';
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="zero-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+                <input type="number" class="param-input" id="zero-planta-input-${idx}" min="-10" max="10" step="0.01" value="${val}">
+                <button type="button" class="remove-btn" id="remove-zero-${idx}" title="Remover Zero">&times;</button>
+            `;
+            zerosList.appendChild(row);
+
+            // Input numérico
+            document.getElementById(`zero-planta-input-${idx}`).oninput = function() {
+                zerosPlanta[idx] = parseFloat(this.value);
+                document.getElementById(`zero-planta-slider-${idx}`).value = this.value;
+                atualizar();
+            };
+            // Slider
+            document.getElementById(`zero-planta-slider-${idx}`).oninput = function() {
+                zerosPlanta[idx] = parseFloat(this.value);
+                document.getElementById(`zero-planta-input-${idx}`).value = this.value;
+                atualizar();
+            };
+            // Remover
+            document.getElementById(`remove-zero-${idx}`).onclick = function() {
+                zerosPlanta.splice(idx, 1);
+                renderPlantaInputs();
+                atualizar();
+            };
+        });
+    }
+
+    // --- Botões para adicionar polos e zeros ---
+    function setupPlantaBtns() {
+        document.getElementById('add-polo-btn').onclick = function() {
+            polosPlanta.push(-1);
+            renderPlantaInputs();
+            atualizar();
+        };
+        document.getElementById('add-zero-btn').onclick = function() {
+            if (zerosPlanta.length < polosPlanta.length) {
+        zerosPlanta.push(0);
+        renderPlantaInputs();
+        atualizar();
+    } else {
+        alert("Não é permitido adicionar mais zeros que polos!");
+    }
+        };
+    }
+
+    // --- Atualização dos gráficos e LaTeX ---
+    async function atualizar() {
+        // Monta arrays atuais dos polos/zeros
+        const polos = polosPlanta.map((_, idx) =>
+            parseFloat(document.getElementById(`polo-planta-input-${idx}`).value)
+        );
+        const zeros = zerosPlanta.map((_, idx) =>
+            parseFloat(document.getElementById(`zero-planta-input-${idx}`)?.value ?? 0)
+        );
+        polosPlanta = polos;
+        zerosPlanta = zeros;
+
+        const data = {
+            polos_planta: polosPlanta,
+            zeros_planta: zerosPlanta
+        };
+        const res = await fetch('/atualizar_pagina2', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+
+        document.getElementById('latex_planta_polinomial').innerHTML = result.latex_planta_polinomial || "Erro ao carregar forma polinomial";
+document.getElementById('latex_planta_fatorada').innerHTML = result.latex_planta_fatorada || "Erro ao carregar forma fatorada";
+document.getElementById('latex_planta_parcial').innerHTML = result.latex_planta_parcial || "Erro ao carregar fração parcial";
+if (window.MathJax) MathJax.typesetPromise();
+
+        Plotly.react('plot_pz', result.plot_pz_data.data, {
+            ...result.plot_pz_data.layout,
+            width: 850, // largura desejada
+            height: 400
+        }, {responsive: false}); // largura fixa
+
+        Plotly.react('plot_open', result.plot_open_data.data, {
+            ...result.plot_open_data.layout,
+            width: 850, // largura desejada
+            height: 400
+        }, {responsive: false}); // largura fixa
+
+        // MANTÉM O DISPLAY CORRETO APÓS ATUALIZAÇÃO
+        if (document.getElementById('seta-grafico-pz').innerHTML === "&#x25B6;") {
+            document.getElementById('plot_pz').style.display = "none";
+        }
+        if (document.getElementById('seta-grafico-open').innerHTML === "&#x25B6;") {
+            document.getElementById('plot_open').style.display = "none";
+        }
+        if (document.getElementById('seta-grafico-nyquist').innerHTML === "&#x25B6;") {
+            document.getElementById('nyquist-img').style.display = "none";
+        }
+
+        // Atualiza Nyquist
+        const resNyquist = await fetch('/nyquist_pagina2', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const nyquistResult = await resNyquist.json();
+        document.getElementById('nyquist-img').src = "data:image/png;base64," + nyquistResult.nyquist_img;
+        forcePlotlyResize();
+    }
+
+    // Função para alternar exibição dos gráficos
+    function toggleSection(btnId, sectionId) {
+        const btn = document.getElementById(btnId);
+        const section = document.getElementById(sectionId);
+        btn.onclick = function() {
+            if (section.style.display === "none" || section.style.display === "") {
+                section.style.display = "block";
+                btn.innerHTML = "&#x25BC;"; // seta para baixo
+                forcePlotlyResize(); // <-- aqui!
+            } else {
+                section.style.display = "none";
+                btn.innerHTML = "&#x25B6;"; // seta para direita
+            }
+        };
+    }
+
+    // --- Inicialização única ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa inputs e botões
+        renderPlantaInputs();
+        setupPlantaBtns();
+        atualizar();
+
+        // Menu hamburguer interativo com delay de 0.3s para fechar
+        const menu = document.querySelector('.menu');
+        const menuContent = document.querySelector('.menu-content');
+        const menuBtn = document.getElementById('menu-toggle-btn');
+        let closeMenuTimeout = null;
+
+        menu.classList.remove('open');
+        menuContent.style.display = 'none';
+
+        function openMenu() {
+            if (closeMenuTimeout) {
+                clearTimeout(closeMenuTimeout);
+                closeMenuTimeout = null;
+            }
+            menu.classList.add('open');
+            menuContent.style.display = 'block';
+        }
+        function closeMenu() {
+            menu.classList.remove('open');
+            menuContent.style.display = 'none';
+        }
+
+        menuBtn.addEventListener('mouseenter', openMenu);
+        menu.addEventListener('mouseenter', openMenu);
+
+        menu.addEventListener('mouseleave', function() {
+            closeMenuTimeout = setTimeout(closeMenu, 300);
+        });
+
+        menuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (menu.classList.contains('open')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!menu.contains(e.target)) {
+                closeMenu();
+            }
+        });
+
+        // Inicializa oculto e seta para direita
+        document.getElementById('plot_pz').style.display = "none";
+        document.getElementById('seta-grafico-pz').innerHTML = "&#x25B6;";
+        document.getElementById('plot_open').style.display = "none";
+        document.getElementById('seta-grafico-open').innerHTML = "&#x25B6;";
+        document.getElementById('nyquist-img').style.display = "none";
+        document.getElementById('seta-grafico-nyquist').innerHTML = "&#x25B6;";
+
+        toggleSection('seta-grafico-pz', 'plot_pz');
+        toggleSection('seta-grafico-open', 'plot_open');
+        toggleSection('seta-grafico-nyquist', 'nyquist-img');
+
+        // Feedback modal
+        document.getElementById('abrir-feedback').onclick = function() {
+            document.getElementById('modal-feedback').style.display = 'block';
+        };
+        document.getElementById('fechar-modal').onclick = function() {
+            document.getElementById('modal-feedback').style.display = 'none';
+        };
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('modal-feedback')) {
+                document.getElementById('modal-feedback').style.display = 'none';
+            }
+        };
+        document.getElementById('enviar-feedback').onclick = async function() {
+            const texto = document.getElementById('feedback-texto').value;
+            const res = await fetch('/enviar_feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feedback: texto })
+            });
+            if (res.ok) {
+                alert('Feedback enviado com sucesso!');
+                document.getElementById('modal-feedback').style.display = 'none';
+                document.getElementById('feedback-texto').value = '';
+            } else {
+                alert('Erro ao enviar feedback.');
+            }
+        };
+
+        // Alterna a exibição da função de transferência
+        document.getElementById('select-ft-planta').onchange = function() {
+            let val = this.value;
+            document.getElementById('latex_planta_fatorada').style.display = val === 'fatorada' ? '' : 'none';
+            document.getElementById('latex_planta_polinomial').style.display = val === 'polinomial' ? '' : 'none';
+            document.getElementById('latex_planta_parcial').style.display = val === 'parcial' ? '' : 'none';
+        };
+
+        // Dark mode toggle simplificado
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const darkModeIcon = document.getElementById('dark-mode-icon');
+        function setDarkMode(enabled) {
+            document.body.classList.toggle('dark-mode', enabled);
+            darkModeIcon.textContent = enabled ? '🌞' : '🌙';
+            localStorage.setItem('dark-mode', enabled);
+        }
+        // Inicializa estado do dark mode
+        const darkModeEnabled = localStorage.getItem('dark-mode') === 'true';
+        darkModeToggle.checked = darkModeEnabled;
+        setDarkMode(darkModeEnabled);
+
+        darkModeToggle.addEventListener('change', function(event) {
+            setDarkMode(event.target.checked);
+        });
+    });
+    </script>
+</body>
+</html>

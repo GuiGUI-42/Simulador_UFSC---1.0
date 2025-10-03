@@ -1,0 +1,554 @@
+/* Estilo para os sliders */
+input[type="range"] {
+    -webkit-appearance: none; /* Remove o estilo padrão do navegador */
+    appearance: none; /* Define a propriedade padrão para compatibilidade */
+    width: 70%; /* Ajusta a largura */
+    height: 10px; /* Altura do slider */
+    border-radius: 5px; /* Bordas arredondadas */
+    background: linear-gradient(90deg, #4caf50, #2196f3); /* Gradiente de cor */
+    outline: none; /* Remove o contorno ao focar */
+    opacity: 0.9; /* Transparência leve */
+    transition: opacity 0.2s; /* Transição suave ao interagir */
+    margin-right: 10px;
+}
+
+input[type="range"]:hover {
+    opacity: 1; /* Torna o slider totalmente opaco ao passar o mouse */
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Remove o estilo padrão do navegador */
+    appearance: none;
+    width: 20px; /* Largura do botão */
+    height: 20px; /* Altura do botão */
+    border-radius: 50%; /* Botão arredondado */
+    background: #ffffff; /* Cor do botão */
+    border: 2px solid #4caf50; /* Borda do botão */
+    cursor: pointer; /* Cursor de ponteiro ao passar o mouse */
+    transition: background 0.2s, transform 0.2s; /* Transição suave ao interagir */
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    background: #4caf50; /* Cor do botão ao passar o mouse */
+    transform: scale(1.2); /* Aumenta o botão ao passar o mouse */
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #4caf50;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+    background: #4caf50;
+    transform: scale(1.2);
+}
+
+input[type="range"]::-ms-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #4caf50;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+input[type="range"]::-ms-thumb:hover {
+    background: #4caf50;
+    transform: scale(1.2);
+}
+
+/* Estilo geral para o corpo */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f5;
+}
+
+.main-flex {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.side-col, .center-col {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0001;
+    padding: 24px;
+}
+
+.side-col {
+    flex: 1 1 350px;
+    min-width: 320px;
+    max-width: 400px;
+}
+
+.center-col {
+    flex: 10 1 1200px;
+    min-width: 340px;
+    max-width: 1800px; /* Aumenta a largura máxima para englobar o gráfico */
+}
+
+.main-content-flex, .graficos-flex {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    width: 100%;
+}
+
+.conteudo-central, .pz-col {
+    flex: 1 1 480px;
+    min-width: 340px;
+}
+
+.pz-col {
+    max-width: 100%; /* Permite que o gráfico ocupe toda a largura disponível */
+    align-items: stretch;
+}
+
+.grafico-col {
+    flex: 1 1 0;
+    min-width: 340px;
+    display: flex;
+    flex-direction: column;
+}
+
+.grafico-col .box {
+    margin-bottom: 0;
+    padding: 16px;
+}
+
+.graficos-flex .box {
+    height: 320px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+@media (max-width: 1600px) {
+    .center-col { max-width: 100vw; }
+    .conteudo-central, .pz-col { max-width: 100%; min-width: 0; }
+}
+
+@media (max-width: 1100px) {
+    .main-flex { flex-direction: column; }
+    .center-col, .side-col, .pz-col, .conteudo-central { max-width: 100%; min-width: 0; }
+    .main-content-flex, .graficos-flex { flex-direction: column; gap: 0; }
+}
+
+.box {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    background: #f9f9f9;
+    margin-bottom: 20px;
+}
+
+.highlight {
+    background: #eaf7ff;
+    border: 1px solid #b3e5fc;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.input-inline {
+    width: 100%;
+    max-width: 120px;
+    font-size: 1em;
+    padding: 2px 4px;
+    margin: 2px 4px;
+}
+
+.param-list {
+    margin-bottom: 16px;
+}
+
+.param-list label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.param-row { margin-bottom: 4px; }
+
+.remove-btn, .add-btn {
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 8px;
+    cursor: pointer;
+    margin-left: 4px;
+}
+
+.remove-btn { background: #d9534f; }
+.add-btn { background: #5cb85c; }
+
+.info-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background: #0074d9;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 14px;
+    line-height: 18px;
+    position: relative;
+}
+
+.info-tooltip {
+    display: none;
+    position: absolute;
+    background: #fff;
+    color: #333;
+    border: 1px solid #0074d9;
+    border-radius: 6px;
+    padding: 8px;
+    z-index: 10;
+    width: 320px;
+    left: 25px;
+    top: -10px;
+    font-size: 0.95em;
+}
+
+.info-icon:hover .info-tooltip {
+    display: block;
+}
+
+.row-flex { display: flex; align-items: center; gap: 10px; }
+
+.section-title {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+/* Estilos do modo escuro */
+body.dark-mode {
+    background: #000 !important; /* Fundo preto */
+    color: #f4f4f9 !important;   /* Texto branco */
+}
+
+/* Conteúdo central e lateral em azul escuro */
+body.dark-mode .center-col,
+body.dark-mode .side-col,
+body.dark-mode .box,
+body.dark-mode .latex-container,
+body.dark-mode .right-section,
+body.dark-mode .left-section {
+    background: #142447 !important; /* Azul escuro */
+    border-color: #1e335c !important;
+    color: #f4f4f9 !important;
+}
+
+/* Controlador: força fundo azul escuro no dark mode */
+body.dark-mode .left-section > div {
+    background: #142447 !important;
+    color: #f4f4f9 !important;
+    border-color: #1e335c !important;
+}
+
+/* Caixas extras e modais em azul médio */
+body.dark-mode .modal-content,
+body.dark-mode #parametros-fixos {
+    background: #1e335c !important; /* Azul médio */
+    color: #f4f4f9 !important;
+    border-color: #25477a !important;
+}
+
+/* Menu em azul mais claro */
+body.dark-mode .menu-content {
+    background: #25477a !important; /* Azul mais claro */
+    color: #f4f4f9 !important;
+    border-color: #1e335c !important;
+}
+
+/* Links do menu no modo escuro */
+body.dark-mode .menu-link {
+    background: linear-gradient(90deg, #25477a 0%, #142447 100%) !important;
+    color: #fff !important;
+}
+
+body.dark-mode .menu-link:hover {
+    background: linear-gradient(90deg, #142447 0%, #25477a 100%) !important;
+    color: #fff !important;
+}
+
+/* Títulos e textos */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode label,
+body.dark-mode select,
+body.dark-mode option,
+body.dark-mode input,
+body.dark-mode .slider-label,
+body.dark-mode b,
+body.dark-mode span {
+    color: #f4f4f9 !important;
+    background: transparent !important;
+    border-color: #25477a !important;
+}
+
+/* Inputs e sliders */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode option {
+    background: #1e335c !important;
+    color: #f4f4f9 !important;
+    border-color: #25477a !important;
+}
+
+/* Sliders */
+body.dark-mode input[type="range"] {
+    background: linear-gradient(90deg, #4caf50, #2196f3) !important;
+}
+
+body.dark-mode input[type="checkbox"] {
+    accent-color: #4caf50;
+    background: #232323 !important;
+    border-color: #333 !important;
+}
+
+
+
+/* Remove box-shadow e borda clara no modo escuro */
+body.dark-mode .left-section,
+body.dark-mode .right-section,
+body.dark-mode .latex-container {
+    box-shadow: none !important;
+    border-color: #333 !important;
+}
+
+/* Fundo dos gráficos mais claro no modo escuro */
+body.dark-mode #plot_pz,
+body.dark-mode #plot_open,
+body.dark-mode #plot_closed {
+   
+    border-color: #444 !important;
+}
+
+
+/* Texto branco na seção direita no modo escuro */
+body.dark-mode .right-section,
+body.dark-mode .right-section * {
+    color: #f4f4f9 !important;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+    position: relative;
+}
+.close {
+    position: absolute;
+    right: 15px; top: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+body.dark-mode .modal-content {
+    background: #232323; /* Fundo dos modais no modo escuro */
+    color: #f4f4f9;
+}
+.menu-link {
+    display: block;
+    margin: 12px 0 0 0;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, #2196f3 0%, #4caf50 100%);
+    color: #fff !important;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 6px rgba(33,150,243,0.08);
+}
+.menu-link:hover {
+    background: linear-gradient(90deg, #4caf50 0%, #2196f3 100%);
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(33,150,243,0.18);
+    text-decoration: none;
+}
+
+/* Slider 2D Perturbação (Malha Fechada) */
+.slider2d-box {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 120px;
+    background: repeating-linear-gradient(
+        135deg,
+        #f0f0f0,
+        #f0f0f0 10px,
+        #e0e0e0 10px,
+        #e0e0e0 20px
+    );
+    border: 3px dashed #2196f3;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(33,150,243,0.10);
+    transition: box-shadow 0.2s, border-color 0.2s;
+    overflow: visible;
+}
+.slider2d-box:hover {
+    border-color: #4caf50;
+    box-shadow: 0 4px 18px rgba(76,175,80,0.18);
+}
+#slider2d-point-fechada {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: orange;
+    border: 3px solid #333;
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(255,140,0,0.18);
+    z-index: 10;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+#slider2d-point-fechada:active {
+    border-color: #2196f3;
+    box-shadow: 0 4px 16px rgba(33,150,243,0.18);
+}
+.slider2d-label {
+    position: absolute;
+    top: 8px;
+    font-size: 1em;
+    background: rgba(255,255,255,0.85);
+    padding: 2px 8px;
+    border-radius: 6px;
+    z-index: 20;
+}
+.slider2d-label-left {
+    left: 10px;
+}
+.slider2d-label-right {
+    right: 10px;
+}
+.slider2d-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    font-size: 0.95em;
+    color: #2196f3;
+    background: rgba(255,255,255,0.85);
+    padding: 2px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 20;
+    font-style: italic;
+}
+body.dark-mode .slider2d-box {
+    background: repeating-linear-gradient(
+        135deg,
+        #232323,
+        #232323 10px,
+        #181818 10px,
+        #181818 20px
+    );
+    border-color: #4caf50;
+}
+body.dark-mode .slider2d-hint,
+body.dark-mode .slider2d-label {
+    background: rgba(24, 24, 24, 0.95);
+    color: #4caf50;
+}
+body.dark-mode #slider2d-point-fechada {
+    border-color: #4caf50;
+}
+
+body.dark-mode #poly-desejado-expl {
+    background: #2a2a2a; /* Fundo do contêiner no modo escuro */
+    color: #f4f4f9; /* Cor do texto no modo escuro */
+    border: 1px solid #444; /* Borda no modo escuro */
+    border-radius: 6px;
+    padding: 10px 16px;
+}
+
+body.dark-mode #poly-desejado-expl ul {
+    color: #f4f4f9; /* Cor do texto das listas no modo escuro */
+}
+
+body.dark-mode #poly-desejado-expl b {
+    color: #ffffff; /* Cor do texto em negrito no modo escuro */
+}
+
+body.dark-mode #poly-desejado-expl span {
+    color: #f4f4f9; /* Cor do texto adicional no modo escuro */
+}
+
+/* Botão de enviar feedback estilizado */
+#abrir-feedback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(90deg, #2196f3 0%, #4caf50 100%);
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(33,150,243,0.12);
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+    margin-top: 10px;
+}
+
+#abrir-feedback:hover {
+    background: linear-gradient(90deg, #4caf50 0%, #2196f3 100%);
+    box-shadow: 0 4px 16px rgba(76,175,80,0.18);
+    transform: scale(1.05);
+}
+
+/* Ícone de mensagem para o botão */
+#abrir-feedback::before {
+    content: "✉️";
+    font-size: 1.2em;
+    margin-right: 4px;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: #223355 !important; /* azul escuro/cinza escuro */
+    color: #fff !important;         /* texto branco */
+    border: 1px solid #25477a !important;
+}
+
+body.dark-mode input:disabled,
+body.dark-mode textarea:disabled,
+body.dark-mode select:disabled {
+    background: #1e335c !important;
+    color: #b0b0b0 !important;
+}
+
+

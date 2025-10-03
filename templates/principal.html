@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador Interativo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- MathJax e Plotly não são necessários aqui, apenas CSS -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f3f3f7;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-container {
+            max-width: 1300px; /* aumentado */
+            margin: 48px auto 0 auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 2px 16px #0001;
+            padding: 36px 32px 32px 32px;
+        }
+        .eixos-container {
+            display: flex;
+            gap: 32px;
+            justify-content: space-between;
+        }
+        .eixo-tematico {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 18px 16px 24px 16px;
+            box-shadow: 0 1px 8px rgba(255, 255, 255, 0.067);
+            min-width: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #2196f3;
+            margin-bottom: 8px;
+            font-size: 2.3em;
+            letter-spacing: 1px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #444;
+            font-size: 1.15em;
+            margin-bottom: 32px;
+        }
+        .section-title {
+            font-size: 1.25em;
+            font-weight: bold;
+            color: #1976d2;
+            margin-top: 0;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        .link-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+        .link-list li {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .menu-link {
+            display: inline-block;
+            padding: 10px 28px;
+            background: linear-gradient(90deg, #2196f3 0%, #4caf50 100%);
+            color: #fff !important;
+            text-decoration: none;
+            border-radius: 7px;
+            font-weight: bold;
+            font-size: 1.08em;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.08);
+            transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+            margin-right: 8px;
+        }
+        .menu-link:hover {
+            background: linear-gradient(90deg, #4caf50 0%, #2196f3 100%);
+            color: #fff !important;
+            box-shadow: 0 4px 16px rgba(33,150,243,0.18);
+            text-decoration: none;
+        }
+        .beta {
+            background: #ff9800;
+            color: #fff !important;
+            font-size: 0.85em;
+            border-radius: 4px;
+            padding: 2px 7px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .sub-list {
+            margin-left: 28px;
+            margin-top: 4px;
+        }
+        .sub-list li {
+            margin-bottom: 7px;
+        }
+        footer {
+            margin-top: 48px;
+            background: #e3e3e9;
+            color: #444;
+            text-align: center;
+            padding: 18px 0 10px 0;
+            font-size: 0.98em;
+            border-top: 1.5px solid #d0d0d7;
+            border-radius: 0 0 14px 14px;
+        }
+        @media (max-width: 1000px) {
+            .main-container { max-width: 98vw; }
+            .eixos-container { flex-direction: column; gap: 18px; }
+            .eixo-tematico { margin-bottom: 12px; }
+        }
+        @media (max-width: 700px) {
+            .main-container { padding: 10px; }
+            h1 { font-size: 1.4em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1>Simulador Interativo</h1>
+        <div class="subtitle">
+            Bem-vindo! Escolha abaixo o módulo desejado para explorar os conceitos desejados.<br>
+            <span style="color:#ff9800;">(Beta)</span> indica funcionalidades em desenvolvimento.
+        </div>
+
+        <div class="eixos-container">
+            <div class="eixo-tematico">
+                <div class="section-title">1. Modelagem</div>
+                <ul class="link-list">
+                    <li>
+                        <a href="/state" class="menu-link">Espaço de Estados (Sistema Mecânico)<span class="beta">Beta</span></a>
+                    </li>
+                </ul>
+            </div>
+            <div class="eixo-tematico">
+                <div class="section-title">2. Sinais e Sistemas</div>
+                <ul class="link-list">
+                    <li>
+                        <a href="/sinais" class="menu-link">Resposta do Sistema</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="eixo-tematico">
+                <div class="section-title">3. Controle</div>
+                <ul class="link-list">
+                    <li>
+                        <a href="/alocacao" class="menu-link">Alocação de Polos</a>
+                    </li>
+                    <li>
+                        <a href="/raizes" class="menu-link">Lugar das Raízes </a>
+                    </li>
+                    <li>
+                        <a href="/malhaaberta" class="menu-link">Malha Aberta</a>
+                    </li>
+                    <li>
+                        <a href="/blocos" class="menu-link">Diagrama de Blocos <span class="beta">Beta</span></a>
+                    </li>
+                    <li>
+                        <a href="/simuladorcomp" class="menu-link">Simulador Completo</a>
+                    </li>
+                    <li>
+                        <a href="/pid" class="menu-link">Avançado (PID) <span class="beta">Beta</span></a>
+                    </li>
+                    <li>
+                        <a href="/discreto" class="menu-link">Discreto <span class="beta">Beta</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <footer>
+    SisCo &copy; <span id="current-year"></span>
+</footer>
+
+<script>
+    // Define o ano atual no elemento com o ID "current-year"
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Projeto por Lugar das Raízes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/slider-style.css') }}">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    
+    <style>
+        .main-flex {
+            display: flex; flex-direction: row; gap: 32px; align-items: flex-start; width: 100%;
+        }
+        .side-col {
+            flex: 1 1 350px; min-width: 340px; max-width: 420px;
+            background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001;
+            padding: 24px 24px 16px 24px;
+        }
+        .center-col {
+            flex: 2 1 700px; min-width: 500px; max-width: 900px;
+            background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001;
+            padding: 24px 24px 16px 24px;
+        }
+        .box {
+            border: 1px solid #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            background: #ffffff;
+            text-align: center; /* Centraliza o conteúdo */
+        }
+        .highlight { background: #ffffff; padding: 8px; border-radius: 4px; display: inline-block; /* ou block, se quiser ocupar toda a linha */ min-width: 48px; /* largura mínima para evitar quebra feia */ word-break: break-word; /* quebra o texto se for muito longo */ vertical-align: middle; /* alinha melhor com o texto ao lado */ }
+        .latex { font-size: 1.2em; margin: 8px 0; }
+        .input-inline { width: 80px; font-size: 1em; padding: 2px 4px; margin: 2px 4px; }
+        .param-list { margin-bottom: 8px; }
+        .param-list label { font-weight: bold; }
+        .param-row { margin-bottom: 4px; }
+        .remove-btn { color: #fff; background: #d9534f; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; margin-left: 4px; }
+        .add-btn { color: #fff; background: #5cb85c; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; margin-left: 4px; }
+        .info-icon {
+            display: inline-block; width: 18px; height: 18px; background: #0074d9; color: #fff;
+            border-radius: 50%; text-align: center; font-weight: bold; cursor: pointer; margin-left: 6px;
+            font-size: 14px; line-height: 18px; position: relative;
+        }
+        .info-tooltip {
+            display: none; position: absolute; background: #fff; color: #333;
+            border: 1px solid #0074d9; border-radius: 6px; padding: 8px; z-index: 10; width: 320px;
+            left: 25px; top: -10px; font-size: 0.95em;
+        }
+        .info-icon:hover .info-tooltip { display: block; }
+        .row-flex {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        }
+        .section-title { font-size: 1.2em; font-weight: bold; margin-bottom: 12px; }
+        .box.highlight {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%; /* Increase width */
+            max-width: 480px; /* Adjust max width */
+        }
+        @media (max-width: 1100px) {
+            .main-flex { flex-direction: column; }
+            .center-col, .side-col { max-width: 100%; min-width: 0; }
+        }
+
+        .menu {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 1000;
+}
+
+        .menu-icon {
+    width: 24px;
+    height: 3px;
+    background: #333;
+    margin: 4px 0;
+    border-radius: 2px;
+}
+        body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f3f3f7;
+    zoom: 0.85;
+    transition: background 0.3s, color 0.3s;
+}
+.menu-content {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 260px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0002;
+    padding: 16px;
+    z-index: 1102;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.menu-content.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.menu-link {
+    display: block;
+    margin: 12px 0 0 0;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, #2196f3 0%, #4caf50 100%);
+    color: #fff !important;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 6px rgba(33,150,243,0.08);
+}
+.menu-link:hover {
+    background: linear-gradient(90deg, #4caf50 0%, #2196f3 100%);
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(33,150,243,0.18);
+    text-decoration: none;
+}
+.toggle-button {
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-right: 8px;
+    color: #0074d9;
+    background: none;
+    border: none;
+    outline: none;
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+}
+
+.toggle-button.rotated {
+    transform: rotate(180deg); /* Rotaciona a seta para cima */
+}
+
+.toggle-button:focus {
+    outline: none;
+}
+.hidden {
+    display: none;
+}
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    background: #fff;
+    box-shadow: 0 2px 8px #0001;
+    padding: 8px 0 4px 0; /* diminui o padding vertical */
+    min-height: 38px;      /* diminui a altura mínima */
+}
+.top-bar .menu {
+    position: absolute;
+    left: 16px;
+    top: 8px;
+    z-index: 1000;
+}
+.page-title {
+    flex: 1;
+    text-align: center;
+    font-size: 1.3em;      /* diminui o tamanho da fonte */
+    font-weight: bold;
+    color: #0074d9;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: #223355 !important;
+    color: #f4f4f9 !important;
+    border: 1px solid #25477a !important;
+}
+
+body.dark-mode input:disabled,
+body.dark-mode textarea:disabled,
+body.dark-mode select:disabled {
+    background: #1e335c !important;
+    color: #b0b0b0 !important;
+}
+
+/* Títulos e textos principais no modo escuro */
+body.dark-mode,
+body.dark-mode .section-title,
+body.dark-mode label,
+body.dark-mode .page-title,
+body.dark-mode .param-list label,
+body.dark-mode .info-tooltip,
+body.dark-mode .highlight,
+body.dark-mode h4,
+body.dark-mode h3 {
+    color: #f4f4f9 !important;
+}
+
+/* Fundo das caixas no modo escuro */
+body.dark-mode .side-col,
+body.dark-mode .center-col,
+body.dark-mode .box,
+body.dark-mode .highlight {
+    background: #182544 !important;
+    border-color: #25477a !important;
+}
+    </style>
+</head>
+<body>
+    <!-- Faixa superior com menu e título -->
+    <div class="top-bar">
+        <div class="menu">
+            <div id="menu-hamburger">
+                <div class="menu-icon"></div>
+                <div class="menu-icon"></div>
+                <div class="menu-icon"></div>
+            </div>
+            <div class="menu-content" id="menu-content">
+                <label>
+                    <input id="dark-mode-toggle" type="checkbox">
+                    <span id="dark-mode-icon">🌙</span>
+            
+                </label>
+                <a href="/principal" class="menu-link">Página Inicial</a>
+                <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Modelagem</div>
+                <a href="/state" class="menu-link">Espaço de Estados</a>
+                <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Sinais e Sistemas</div>
+                <a href="/sinais" class="menu-link">Resposta do Sistema</a>
+                <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Controle</div>
+                <a href="/alocacao" class="menu-link">Alocação de Polos</a>
+                <a href="/malhaaberta" class="menu-link">Malha Aberta</a>
+                <a href="/blocos" class="menu-link">Diagrama de Blocos</a>
+                <a href="/simuladorcomp" class="menu-link">Simulador Completo</a>
+                <a href="/pid" class="menu-link">Avançado (PID)</a>
+                <a href="/discreto" class="menu-link">Discreto</a>
+                <button id="abrir-feedback">Enviar Feedback</button>
+            </div>
+        </div>
+        <div class="page-title">
+            Projeto por Lugar das Raízes
+            <span class="info-icon">i
+                <span class="info-tooltip">
+                    Explore o método do Lugar das Raízes: ajuste polos, zeros e ganho do sistema e veja em tempo real o lugar das raízes, a evolução dos polos e a resposta ao degrau.<br>
+                    Experimente diferentes configurações e observe como o ganho afeta a estabilidade e o desempenho do sistema.
+                </span>
+            </span>
+        </div>
+    </div>
+    <div style="height:10px;"></div>
+
+    <!-- Conteúdo principal -->
+    <div class="main-flex">
+        <div class="side-col">
+            <div class="section-title">Parâmetros do Sistema</div>
+            <div class="param-list">
+                <label>Polos da Planta:</label>
+                <span class="info-icon">i
+                    <span class="info-tooltip">
+                        Polos determinam a estabilidade e a velocidade de resposta da planta.
+                    </span>
+                </span>
+                <div id="planta-polos-list"></div>
+                <button class="add-btn" onclick="addParam('planta-polos')">Adicionar Polo</button>
+            </div>
+            <div class="param-list">
+                <label>Zeros da Planta:</label>
+                <span class="info-icon">i
+                    <span class="info-tooltip">
+                        Zeros podem modificar a forma da resposta transitória.
+                    </span>
+                </span>
+                <div id="planta-zeros-list"></div>
+                <button class="add-btn" onclick="addParam('planta-zeros')">Adicionar Zero</button>
+            </div>
+            <div class="param-list">
+                <label>Ganho (K):</label>
+                <input type="number" id="ganho" class="input-inline" value="1.0" step="0.01" min="-10" onchange="updateAll(); analisarKLR();">
+            </div>
+            <div style="margin: 24px 0 24px 0;">
+                <span class="latex" id="latex-planta"></span>
+            </div>
+            <div class="param-list">
+                <label>Sinal do KLR:</label>
+                <div id="sinal-klr" class="highlight"></div>
+                <span class="info-icon" onclick="abrirModalKLR()">i
+                    <span class="info-tooltip">
+                        Clique para mais informações sobre a fórmula do KLR.
+                    </span>
+                </span>
+            </div>
+            <div class="param-list">
+                <label>(\( K_c \)):</label>
+                <input type="number" id="ganho-controlador" class="input-inline" value="1.0" step="0.01" min="-10" onchange="updateAll(); analisarKLR();atualizarControlador();">
+            </div>
+            <div class="box">
+                <h4>Função de Transferência do Controlador</h4>
+                <p id="ft-controlador" class="latex-container highlight" style="text-align:center;">-</p>
+            </div>
+        </div>
+        <div class="side-col">
+            <div class="section-title">
+                Especificações
+                <span class="info-icon">i
+                    <span class="info-tooltip">
+                        As especificações incluem o Pico Máximo (\( M_p \)) e o Tempo de Assentamento (\( t_{5\%} \)).<br>
+                        Essas especificações são usadas para calcular os polos desejados do sistema.<br>
+                        Fórmulas:<br>
+                        <ul>
+                            <li>\( \zeta = \frac{1}{\sqrt{\pi^2 + (\ln M_p)^2}} \)</li>
+                            <li>\( t_{5\%} = \frac{3}{\zeta \omega_n} \)</li>
+                            <li>\( p_d = -\zeta \omega_n \pm j \omega_n \sqrt{1 - \zeta^2} \)</li>
+                        </ul>
+                    </span>
+                </span>
+            </div>
+            <div class="param-list">
+                <label>Pico Máximo (\( M_p \)):</label>
+                <input type="number" id="pico-maximo" class="input-inline" value="0.05" step="0.01" min="0" onchange="calcularEspecificacoes()">
+            </div>
+            
+            <div class="param-list">
+                <label>Tempo de Assentamento (Malha Aberta):</label>
+                <div id="tempo-assentamento-malha-aberta" class="highlight">-</div>
+            </div>
+            <div class="param-list">
+                <label>Tempo de Assentamento (\( t_{5\%} \)):</label>
+                <input type="number" id="tempo-assentamento" class="input-inline" value="4.3" step="0.1" min="0" onchange="calcularEspecificacoes()">
+            </div>
+            <div class="param-list">
+                <label>Fator de Amortecimento (\( \zeta \)):</label>
+                <div id="fator-amortecimento" class="highlight">-</div>
+            </div>
+            <div class="param-list">
+                <label>Frequência Natural (\( \omega_n \)):</label>
+                <span id="frequencia-natural" class="highlight">-</span>
+            </div>
+            <div class="param-list">
+                <label>Polo Desejado (\( p_d \)):</label>
+                <span id="polo-desejado" class="highlight">-</span>
+            </div>
+            <!-- Contêiner dos Ângulos -->
+            <div class="section-title" style="margin-top: 24px;">
+                Ângulos (\( \theta_{zi} \) e \( \theta_{pi} \))
+                <span class="info-icon">i
+                    <span class="info-tooltip">
+                        Os ângulos \( \theta_{zi} \) e \( \theta_{pi} \) são calculados com base nos polos e zeros da planta e no polo desejado \( p_d \).<br>
+                        Fórmulas:<br>
+                        <ul>
+                            <li>\( \theta_{zi} = \arctan\left(\frac{\text{Im}(p_d)}{\text{Re}(p_d) - \text{Re}(z_i)}\right) \)</li>
+                            <li>\( \theta_{pi} = \arctan\left(\frac{\text{Im}(p_d)}{\text{Re}(p_d) - \text{Re}(p_i)}\right) \)</li>
+                        </ul>
+                        Caso não haja polos ou zeros, a parte real respectiva será considerada como 0.
+                    </span>
+                </span>
+            </div>
+            <div id="angulos-list" class="param-list">
+                <!-- Ângulos dinâmicos serão adicionados aqui -->
+            </div>
+            <div class="param-list">
+                <label>Soma dos Ângulos:</label>
+                <span id="soma-angulos" class="highlight">-</span>
+            </div>
+            <div class="param-list">
+                <label>Ângulo Necessário:</label>
+                <span id="angulo-necessario" class="highlight">-</span>
+            </div>
+                        <div class="section-title" style="margin-top: 24px;">
+                Polos e Zeros do Controlador
+                <span class="info-icon" onclick="abrirModalControlador()">i
+                    <span class="info-tooltip">
+                        Caso o ângulo necessário seja <strong>positivo</strong>, deve-se adicionar zeros para que ele zere.<br>
+                        Caso o ângulo necessário seja <strong>negativo</strong>, deve-se adicionar polos pela mesma lógica.<br>
+                        O objetivo é ajustar os polos e zeros do controlador para que o ângulo necessário seja igual a zero.
+                    </span>
+                </span>
+            </div>
+            <div id="controlador-list" class="param-list">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div>
+                        <label>Polos do Controlador:</label>
+                        <div id="controlador-polos-list"></div>
+                        <button class="add-btn" onclick="addControladorParam('controlador-polos')">Adicionar Polo</button>
+                    </div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <label>Zeros do Controlador:</label>
+                    <div id="controlador-zeros-list"></div>
+                    <button class="add-btn" onclick="addControladorParam('controlador-zeros')">Adicionar Zero</button>
+                </div>
+            </div>
+            
+            <!-- Modal para explicação -->
+            <div id="modal-controlador" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:1001;">
+                <div class="modal-content" style="background:#fff; max-width:540px; margin:60px auto; border-radius:12px; box-shadow:0 4px 24px #0003; padding:32px 28px 24px 28px; position:relative;">
+                    <span class="close" style="position:absolute; top:12px; right:18px; font-size:1.5em; cursor:pointer; color:#0074d9;" onclick="fecharModalControlador()">&times;</span>
+                    <h3>Polos e Zeros do Controlador</h3>
+                    <p>
+                        O ajuste dos polos e zeros do controlador é feito com base no ângulo necessário:
+                    </p>
+                    <ul>
+                        <li>Se o ângulo necessário for <strong>positivo</strong>, adicione zeros para reduzir o ângulo.</li>
+                        <li>Se o ângulo necessário for <strong>negativo</strong>, adicione polos para aumentar o ângulo.</li>
+                    </ul>
+                    <p>
+                        A fórmula para calcular o polo ou zero desejado é:
+                    </p>
+                    <p class="latex-container">
+                        \( Z \, \text{ou} \, P = \frac{\text{Valor Imaginário} p_d}{\tan(\text{Ângulo Necessário})} + \text{Valor Real} p_d \)
+                    </p>
+                    <p>
+                        Resultado do cálculo:
+                    </p>
+                    <p id="resultado-calculo" class="highlight">-</p>
+                    <hr>
+                    <h4>Cálculo do Ganho \( |K_c| \)</h4>
+                    <p>
+                        O ganho \( K_c \) do controlador é calculado utilizando a seguinte fórmula:
+                    </p>
+                    <p class="latex-container">
+                        \( |K_c| = \left| \frac{\text{Numerador da Planta} \cdot \text{Numerador do Controlador}}{\text{Denominador da Planta} \cdot \text{Denominador do Controlador}} \right| \)
+                    </p>
+                    <p>
+                        Para realizar o cálculo, substitua \( s \) nas funções de transferência pela parte real do polo desejado (\( p_d \)).
+                    </p>
+                    <p>
+                        Valor desejado do ganho do controlador \( |K_c| \):
+                    </p>
+                    <p id="valor-desejado-kc" class="highlight">-</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="center-col">    
+            <!-- Gráfico do Lugar das Raízes -->
+            <div style="margin-bottom: 32px;">
+                <label style="font-weight: bold; display: flex; align-items: center;">
+                    Lugar das Raízes:
+                    <span class="info-icon" onclick="abrirModalLGR()">i
+                        <span class="info-tooltip">
+                            Amplie se necessário.
+                        </span>
+                    </span>
+                </label>
+                <div id="plot-lgr" style="margin-top: 16px; width: 100%; min-height: 320px; height: 320px;"></div>
+            </div>
+            <!-- Gráfico do Lugar das Raízes acima do gráfico de resposta ao degrau -->
+            <div style="margin-bottom: 32px;">
+                <label style="font-weight: bold; display: flex; align-items: center;">
+                    <button class="toggle-button" onclick="toggleVisibility(event, 'plot-step')">▼</button>
+                    Resposta ao Degrau (Malha Fechada):
+                </label>
+                <div id="plot-step" style="margin-top: 16px; width: 100%; min-height: 320px; height: 320px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal KLR -->
+    <div id="modal-klr" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:1001;">
+        <div class="modal-content" style="background:#fff; max-width:540px; margin:60px auto; border-radius:12px; box-shadow:0 4px 24px #0003; padding:32px 28px 24px 28px; position:relative;">
+            <span class="close" style="position:absolute; top:12px; right:18px; font-size:1.5em; cursor:pointer; color:#0074d9;" onclick="fecharModalKLR()">&times;</span>
+            <h3>Fórmula do KLR</h3>
+            <p>
+                O KLR é calculado como o produto do ganho da planta (\( K \)) e o ganho do controlador (\( K_c \)):
+            </p>
+            <p class="latex-container">
+                \( KLR = K \cdot K_c \)
+            </p>
+            <p>
+                A análise do sinal do KLR é feita da seguinte forma:
+            </p>
+            <ul>
+                <li>Se \( KLR > 0 \): Condição de fase = -180°.</li>
+                <li>Se \( KLR < 0 \): Condição de fase = 0°.</li>
+                <li>Se \( KLR = 0 \): Neutro (KLR = 0).</li>
+            </ul>
+            <p>
+                Certifique-se de que o ganho do controlador (\( K_c \)) tenha o mesmo sinal do ganho da planta (\( K \)) para garantir a estabilidade do sistema.
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal Controlador -->
+    <div id="modal-controlador" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:1001;">
+        <div class="modal-content" style="background:#fff; max-width:540px; margin:60px auto; border-radius:12px; box-shadow:0 4px 24px #0003; padding:32px 28px 24px 28px; position:relative;">
+            <span class="close" style="position:absolute; top:12px; right:18px; font-size:1.5em; cursor:pointer; color:#0074d9;" onclick="fecharModalControlador()">&times;</span>
+            <h3>Polos e Zeros do Controlador</h3>
+            <p>
+                O ajuste dos polos e zeros do controlador é feito com base no ângulo necessário:
+            </p>
+            <ul>
+                <li>Se o ângulo necessário for <strong>positivo</strong>, adicione zeros para reduzir o ângulo.</li>
+                <li>Se o ângulo necessário for <strong>negativo</strong>, adicione polos para aumentar o ângulo.</li>
+            </ul>
+            <p>
+                A fórmula para calcular o polo ou zero desejado é:
+            </p>
+            <p class="latex-container">
+                \( Z \, \text{ou} \, P = \frac{\text{Parte Imaginária de } p_d}{\tan(\text{Ângulo Necessário})} + \text{Parte Real de } p_d \)
+            </p>
+            <p>
+                Resultado do cálculo:
+            </p>
+            <p id="resultado-calculo" class="highlight">-</p>
+            <hr>
+            <h4>Cálculo do Ganho \( |K_c| \)</h4>
+            <p>
+                O ganho \( K_c \) do controlador é calculado utilizando a seguinte fórmula:
+            </p>
+            <p class="latex-container">
+                \( |K_c| = \left| \frac{\text{Numerador da Planta} \cdot \text{Numerador do Controlador}}{\text{Denominador da Planta} \cdot \text{Denominador do Controlador}} \right| \)
+            </p>
+            <p>
+                Para realizar o cálculo, substitua \( s \) nas funções de transferência pela parte real do polo desejado (\( p_d \)).
+            </p>
+            <p>
+                Valor desejado do ganho do controlador:
+            </p>
+            <p id="valor-desejado-kc" class="highlight">-</p>
+        </div>
+    </div>
+
+    <script>
+    // --- Estado dos parâmetros ---
+    let polos_planta = [-1]; // Inicializar com apenas 1 polo
+    let zeros_planta = []; // Nenhum zero inicialmente
+    let ganho = 1.0;
+    let ganhoControlador = -1.0;
+    let polos_controlador = []; // Inicializa os polos do controlador
+    let zeros_controlador = []; // Inicializa os zeros do controlador
+    let condicaoFaseAtual = 0; // Condição de fase atual para recalculo do ângulo necessário
+
+    function renderParamList(listId, arr, type) {
+        const container = document.getElementById(listId);
+        container.innerHTML = '';
+        arr.forEach((val, idx) => {
+            const row = document.createElement('div');
+            row.className = 'param-row';
+            row.innerHTML = `<input type="number" class="input-inline" value="${val}" step="0.01"
+                onchange="onParamChange('${type}',${idx},this.value)">
+                <button class="remove-btn" onclick="removeParam('${type}',${idx})">x</button>`;
+            container.appendChild(row);
+        });
+    }
+
+    function addParam(type) {
+        if (type === 'planta-polos') polos_planta.push(-1);
+        if (type === 'planta-zeros') zeros_planta.push(0);
+
+        // Atualiza os cálculos de especificações
+        calcularEspecificacoes();
+        updateParamLists();
+        updateAll();
+    }
+
+    function removeParam(type, idx) {
+        if (type === 'planta-polos') polos_planta.splice(idx, 1);
+        if (type === 'planta-zeros') zeros_planta.splice(idx, 1);
+
+    calcularEspecificacoes();
+    updateParamLists();
+    updateAll();
+}
+
+function onParamChange(type, idx, value) {
+    value = parseFloat(value);
+    if (type === 'planta-polos') polos_planta[idx] = value;
+    if (type === 'planta-zeros') zeros_planta[idx] = value;
+
+    calcularEspecificacoes();
+    updateAll();
+}
+
+function renderControladorList(listId, arr, type) {
+    const container = document.getElementById(listId);
+    container.innerHTML = '';
+    arr.forEach((val, idx) => {
+        const row = document.createElement('div');
+        row.className = 'param-row';
+        row.innerHTML = `<input type="number" class="input-inline" value="${val}" step="0.01"
+            onchange="onControladorParamChange('${type}',${idx},this.value)">
+            <button class="remove-btn" onclick="removeControladorParam('${type}',${idx})">x</button>`;
+        container.appendChild(row);
+    });
+}
+
+function addControladorParam(type) {
+        if (type === 'controlador-polos') polos_controlador.push(-1);
+        if (type === 'controlador-zeros') zeros_controlador.push(0);
+
+        // Atualiza a interface
+        updateControladorLists();
+        atualizarControlador(); // Atualiza a função de transferência do controlador
+    }
+
+    function removeControladorParam(type, idx) {
+        if (type === 'controlador-polos') polos_controlador.splice(idx, 1);
+        if (type === 'controlador-zeros') zeros_controlador.splice(idx, 1);
+
+        // Atualiza a interface
+        updateControladorLists();
+        atualizarControlador(); // Atualiza a função de transferência do controlador
+    }
+
+    function onControladorParamChange(type, idx, value) {
+        value = parseFloat(value);
+        if (type === 'controlador-polos') polos_controlador[idx] = value;
+        if (type === 'controlador-zeros') zeros_controlador[idx] = value;
+
+        // Atualiza a interface
+        atualizarControlador(); // Atualiza a função de transferência do controlador
+    }
+
+    function updateParamLists() {
+        renderParamList('planta-polos-list', polos_planta, 'planta-polos');
+        renderParamList('planta-zeros-list', zeros_planta, 'planta-zeros');
+        document.getElementById('ganho').value = ganho;
+    }
+
+    function updateControladorLists() {
+        renderControladorList('controlador-polos-list', polos_controlador, 'controlador-polos');
+        renderControladorList('controlador-zeros-list', zeros_controlador, 'controlador-zeros');
+    }
+
+    // Chame updateAll sempre que qualquer parâmetro da planta mudar
+    function updateAll() {
+        ganho = parseFloat(document.getElementById('ganho').value) || 1.0;
+        // Removido: updateLGR();
+
+        // Atualiza o gráfico de resposta ao degrau
+        const polos = polos_planta.slice();
+        const zeros = zeros_planta.slice();
+
+        fetch('/novo_grafico_fechado', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                polos_planta: polos,
+                zeros_planta: zeros,
+                ganho_planta: ganho,
+                polos_controlador: polos_controlador,
+                zeros_controlador: zeros_controlador,
+                ganho_controlador: ganhoControlador
+            })
+        })
+        .then(resp => resp.json())
+        .then(data => {
+            if (data.novo_grafico_data && data.novo_grafico_data.data && data.novo_grafico_data.layout) {
+                Plotly.newPlot('plot-step', data.novo_grafico_data.data, data.novo_grafico_data.layout, {responsive: true});
+            } else {
+                Plotly.purge('plot-step');
+            }
+        })
+        .catch(() => {
+            Plotly.purge('plot-step');
+        });
+
+        // Atualizar FT da planta (corrigido para exibir corretamente)
+        let num = zeros_planta.length > 0
+            ? zeros_planta.map(z => `(s${z < 0 ? '+' : '-'}${Math.abs(z).toFixed(2)})`).join(' ')
+            : '1';
+        let den = polos_planta.length > 0
+            ? polos_planta.map(p => `(s${p < 0 ? '+' : '-'}${Math.abs(p).toFixed(2)})`).join(' ')
+            : '1';
+        let latex = `\\[ G(s) = ${ganho.toFixed(2)} \\cdot \\frac{${num}}{${den}} \\]`;
+        document.getElementById('latex-planta').innerHTML = latex;
+        if (window.MathJax) MathJax.typesetPromise([document.getElementById('latex-planta')]);
+
+        analisarKLR();
+        plotLGR(); // Adicione esta linha para atualizar o LGR sempre que os parâmetros mudarem
+    }
+
+    function analisarKLR() {
+        // Obtém os valores do ganho da planta e do controlador
+        ganho = parseFloat(document.getElementById('ganho').value) || 0;
+        ganhoControlador = parseFloat(document.getElementById('ganho-controlador').value) || 0;
+
+        // Calcula o KLR como o produto dos ganhos
+        const klr = ganho * ganhoControlador;
+
+        // Determina o sinal do KLR e a condição de fase
+        let sinalKLR = '';
+        if (klr > 0) {
+            sinalKLR = 'Positivo (Condição de fase: -180°)';
+            condicaoFaseAtual = -180; // Atualiza a variável global
+        } else if (klr < 0) {
+            sinalKLR = 'Negativo (Condição de fase: 0°)';
+            condicaoFaseAtual = 0; // Atualiza a variável global
+        } else {
+            sinalKLR = 'Neutro (KLR = 0)';
+            condicaoFaseAtual = 0; // Atualiza a variável global
+        }
+
+        // Atualiza o texto na interface
+        document.getElementById('sinal-klr').innerText = sinalKLR;
+
+        // Recalcula o ângulo necessário com base na nova condição de fase
+        recalcularAnguloNecessario(condicaoFaseAtual);
+    }
+
+    function recalcularAnguloNecessario(condicaoFase) {
+        // Obtém a soma dos ângulos calculada anteriormente
+        const somaAngulos = parseFloat(document.getElementById('soma-angulos').innerText) || 0;
+
+        // Calcula o ângulo necessário para o controlador
+        const anguloNecessario = condicaoFase - somaAngulos;
+
+        // Exibe a fórmula do ângulo necessário
+        const formula = `
+            \\[ \\sum \\theta_{z_c} - \\sum \\theta_{p_c} = ${anguloNecessario.toFixed(2)}° \\]
+        `;
+        document.getElementById('angulo-necessario').innerHTML = formula;
+
+        // Atualiza a renderização do MathJax para o novo ângulo necessário
+        if (window.MathJax) {
+            MathJax.typesetPromise([document.getElementById('angulo-necessario')]);
+        }
+    }
+
+    function calcularEspecificacoes() {
+        const picoMaximo = parseFloat(document.getElementById('pico-maximo').value) || 0.05;
+        const tempoAssentamento = parseFloat(document.getElementById('tempo-assentamento').value) || 4.3;
+
+        // Cálculo do fator de amortecimento (zeta)
+        const lnMp = Math.log(picoMaximo);
+        const zeta = Math.sqrt(1 / ((Math.PI / lnMp) ** 2 + 1));
+
+        // Cálculo da frequência natural (omega_n)
+        const omegaN = 3 / (zeta * tempoAssentamento);
+
+        // Cálculo do polo desejado (p_d)
+        const realPart = -zeta * omegaN;
+        const imagPart = omegaN * Math.sqrt(1 - zeta ** 2);
+        const pd = `${realPart.toFixed(3)} ± ${imagPart.toFixed(3)}j`;
+
+        // Atualiza os valores na interface
+        document.getElementById('fator-amortecimento').innerText = zeta.toFixed(3);
+        document.getElementById('frequencia-natural').innerText = omegaN.toFixed(3);
+        document.getElementById('polo-desejado').innerText = pd;
+
+        // Cálculo do tempo de assentamento de malha aberta
+        let tempoAssentamentoMalhaAberta = 0;
+
+        if (polos_planta.length === 1) {
+            // Caso 1: Apenas 1 polo
+            const polo = polos_planta[0];
+            tempoAssentamentoMalhaAberta = 3 / Math.abs(polo);
+        } else if (polos_planta.length === 2) {
+            const [polo1, polo2] = [...polos_planta].sort((a, b) => Math.abs(a) - Math.abs(b)); // Ordena polos por magnitude
+            if (polo1 === polo2) {
+                // Caso 2: Dois polos iguais
+                tempoAssentamentoMalhaAberta = 4.8 / Math.abs(polo1);
+            } else {
+                // Caso 3: Dois polos diferentes
+                const poloLento = Math.min(Math.abs(polo1), Math.abs(polo2));
+                const poloRapido = Math.max(Math.abs(polo1), Math.abs(polo2));
+                tempoAssentamentoMalhaAberta = (3 / poloLento) + (1.5 / poloRapido);
+            }
+        } else if (polos_planta.length > 2) {
+            // Caso 4: Mais de dois polos (considera apenas os dois mais dominantes)
+            const [polo1, polo2] = [...polos_planta].sort((a, b) => Math.abs(a) - Math.abs(b)).slice(0, 2); // Seleciona os dois polos mais lentos
+            const poloLento = Math.min(Math.abs(polo1), Math.abs(polo2));
+            const poloRapido = Math.max(Math.abs(polo1), Math.abs(polo2));
+            tempoAssentamentoMalhaAberta = (3 / poloLento) + (1.5 / poloRapido);
+        }
+
+        // Atualiza o valor na interface
+        document.getElementById('tempo-assentamento-malha-aberta').innerText = `${tempoAssentamentoMalhaAberta.toFixed(2)} s`;
+
+        // Atualiza os ângulos dinamicamente
+        atualizarAngulos(realPart, imagPart);
+
+
+    }
+
+    function abrirModalEspecificacoes() {
+        document.getElementById('modal-especificacoes').style.display = 'block';
+        if (window.MathJax) MathJax.typesetPromise();
+    }
+
+    function fecharModalEspecificacoes() {
+        document.getElementById('modal-especificacoes').style.display = 'none';
+    }
+
+    function abrirModalKLR() {
+        const modal = document.getElementById('modal-klr');
+        if (modal) {
+            modal.style.display = 'block';
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+    }
+
+    function fecharModalKLR() {
+        const modal = document.getElementById('modal-klr');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function abrirModalControlador() {
+        const modal = document.getElementById('modal-controlador');
+        if (modal) {
+            // Calcula o polo ou zero desejado
+            const resultado = calcularPoloOuZeroDesejado();
+
+            // Atualiza o resultado no modal
+            document.getElementById('resultado-calculo').innerText = resultado;
+
+            // Calcula o valor desejado de Kc
+            const valorDesejadoKc = calcularGanhoControlador();
+            document.getElementById('valor-desejado-kc').innerText = valorDesejadoKc;
+
+            // Exibe o modal
+            modal.style.display = 'block';
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+    }
+
+    function fecharModalControlador() {
+        const modal = document.getElementById('modal-controlador');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+   function atualizarControlador() {
+    // Atualiza o valor de ganhoControlador com o valor do input
+    ganhoControlador = parseFloat(document.getElementById('ganho-controlador').value) || -1.0;
+
+    // Constrói os fatores dos polos e zeros do controlador
+    const polos = polos_controlador.map((polo) => `(s - (${polo.toFixed(2)}))`).join(' ');
+    const zeros = zeros_controlador.map((zero) => `(s - (${zero.toFixed(2)}))`).join(' ');
+
+    // Monta a função de transferência do controlador com o valor de Kc
+    const ftControlador = `${ganhoControlador.toFixed(2)} \\cdot \\frac{${zeros || 1}}{${polos || 1}}`;
+
+    // Atualiza a exibição da função de transferência na coluna esquerda
+    document.getElementById('ft-controlador').innerHTML = `\\[ ${ftControlador} \\]`;
+
+    // Atualiza a renderização do MathJax
+    if (window.MathJax) {
+        MathJax.typesetPromise([document.getElementById('ft-controlador')]);
+    }
+
+    // Atualiza o sistema com os novos valores
+    updateAll();
+}
+
+    function atualizarAngulos(realPd, imagPd) {
+        const angulosContainer = document.getElementById('angulos-list');
+        angulosContainer.innerHTML = ''; // Limpa os ângulos existentes
+
+        let somaAngulos = 0; // Inicializa a soma dos ângulos
+
+        // Calcula os ângulos para os zeros
+        if (zeros_planta.length === 0) {
+            // Adiciona automaticamente um zero em 0 se não houver zeros definidos
+            const thetaZ = Math.atan(imagPd / (realPd - 0)) * (180 / Math.PI); // Ângulo em graus
+            somaAngulos += thetaZ; // Adiciona o ângulo à soma
+            const anguloZ = document.createElement('div');
+            anguloZ.className = 'param-list';
+            anguloZ.innerHTML = `<label>\\( \\theta_{z1} \\):</label>
+                                 <span class="highlight">${thetaZ.toFixed(2)}°</span>`;
+            angulosContainer.appendChild(anguloZ);
+        } else {
+            // Calcula os ângulos para os zeros definidos
+            zeros_planta.forEach((zero, index) => {
+                const thetaZ = Math.atan(imagPd / (realPd - zero)) * (180 / Math.PI); // Ângulo em graus
+                somaAngulos += thetaZ; // Adiciona o ângulo à soma
+                const anguloZ = document.createElement('div');
+                anguloZ.className = 'param-list';
+                anguloZ.innerHTML = `<label>\\( \\theta_{z${index + 1}} \\):</label>
+                                     <span class="highlight">${thetaZ.toFixed(2)}°</span>`;
+                angulosContainer.appendChild(anguloZ);
+            });
+        }
+
+        // Calcula os ângulos para os polos
+        polos_planta.forEach((polo, index) => {
+            const thetaP = Math.atan(imagPd / (realPd - polo)) * (180 / Math.PI); // Ângulo em graus
+            somaAngulos -= thetaP; // Subtrai o ângulo dos polos
+            const anguloP = document.createElement('div');
+            anguloP.className = 'param-list';
+            anguloP.innerHTML = `<label>\\( \\theta_{p${index + 1}} \\):</label>
+                                 <span class="highlight">${thetaP.toFixed(2)}°</span>`;
+            angulosContainer.appendChild(anguloP);
+        });
+
+        // Atualiza a soma dos ângulos na interface
+        document.getElementById('soma-angulos').innerText = `${somaAngulos.toFixed(2)}°`;
+
+        // Recalcula o ângulo necessário com a condição de fase atual
+        const klr = ganho * ganhoControlador;
+        const condicaoFase = klr > 0 ? -180 : 0;
+        recalcularAnguloNecessario(condicaoFase);
+
+        // Atualiza a renderização do MathJax para os novos ângulos
+        if (window.MathJax) {
+            MathJax.typesetPromise([angulosContainer]);
+        }
+    }
+    
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function () {
+    // Inicialização dos parâmetros e interface
+    updateParamLists();
+    updateControladorLists();
+    calcularEspecificacoes();
+    atualizarControlador();
+    updateAll();
+    analisarKLR();
+
+    // Menu hamburguer interativo
+    const menuHamburger = document.getElementById('menu-hamburger');
+    const menuContent = document.getElementById('menu-content');
+    menuHamburger.addEventListener('mouseover', () => {
+        menuContent.classList.add('show');
+    });
+    menuHamburger.addEventListener('mouseout', () => {
+        menuContent.classList.remove('show');
+    });
+    menuContent.addEventListener('mouseover', () => {
+        menuContent.classList.add('show');
+    });
+    menuContent.addEventListener('mouseout', () => {
+        menuContent.classList.remove('show');
+    });
+
+    // Dark mode
+    const darkToggle = document.getElementById('dark-mode-toggle');
+    const darkIcon = document.getElementById('dark-mode-icon');
+    darkToggle.addEventListener('change', function(event) {
+        document.body.classList.toggle('dark-mode', event.target.checked);
+        darkIcon.textContent = document.body.classList.contains('dark-mode') ? '🌞' : '🌙';
+        localStorage.setItem('dark-mode', event.target.checked);
+    });
+
+    // Persistência do modo escuro
+    if (localStorage.getItem('dark-mode') === 'true') {
+        document.body.classList.add('dark-mode');
+        darkToggle.checked = true;
+        darkIcon.textContent = '🌞';
+    }
+});
+    function calcularPoloOuZeroDesejado() {
+        // Obtém os valores necessários
+        const realPd = parseFloat(document.getElementById('polo-desejado').innerText.split('±')[0]) || 0;
+        const imagPd = parseFloat(document.getElementById('polo-desejado').innerText.split('±')[1]) || 0;
+
+        // Usa a variável global condicaoFaseAtual para obter o ângulo necessário
+        const anguloNecessario = condicaoFaseAtual - parseFloat(document.getElementById('soma-angulos').innerText);
+
+        // Verifica se o ângulo necessário é válido
+        if (anguloNecessario === 0) {
+            return "O ângulo necessário é zero, não é necessário adicionar polos ou zeros.";
+        }
+
+        // Calcula o polo ou zero desejado
+        const tangente = Math.tan((anguloNecessario * Math.PI) / 180); // Converte o ângulo para radianos
+        const resultado = (imagPd / tangente) + realPd;
+
+        // Retorna o resultado formatado
+        return resultado.toFixed(3);
+    }
+
+    function calcularGanhoControlador() {
+        // Obtém os valores necessários
+        const realPd = parseFloat(document.getElementById('polo-desejado').innerText.split('±')[0]) || 0;
+
+        // Substitua "s" pela parte real de Pd nas funções de transferência
+        const numeradorPlanta = zeros_planta.reduce((acc, zero) => acc * (realPd - zero), 1);
+        const denominadorPlanta = polos_planta.reduce((acc, polo) => acc * (realPd - polo), 1);
+        const numeradorControlador = zeros_controlador.reduce((acc, zero) => acc * (realPd - zero), 1);
+        const denominadorControlador = polos_controlador.reduce((acc, polo) => acc * (realPd - polo), 1);
+
+        // Calcula o ganho Kc
+        const kc = Math.abs((numeradorPlanta * numeradorControlador) / (denominadorPlanta * denominadorControlador));
+        
+        // Retorna apenas o valor numérico formatado
+        return kc.toFixed(3);
+    }
+
+    // Adiciona eventos de mouseover e mouseout para abrir e fechar o menu
+    document.addEventListener('DOMContentLoaded', () => {
+        const menuHamburger = document.getElementById('menu-hamburger');
+        const menuContent = document.getElementById('menu-content');
+
+        // Exibe o menu ao passar o mouse por cima
+        menuHamburger.addEventListener('mouseover', () => {
+            menuContent.classList.add('show');
+        });
+
+        // Oculta o menu ao tirar o mouse de cima
+        menuHamburger.addEventListener('mouseout', () => {
+            menuContent.classList.remove('show');
+        });
+
+        // Também permite que o menu permaneça aberto ao passar o mouse sobre o conteúdo
+        menuContent.addEventListener('mouseover', () => {
+            menuContent.classList.add('show');
+        });
+
+        menuContent.addEventListener('mouseout', () => {
+            menuContent.classList.remove('show');
+        });
+    });
+    function toggleVisibility(event, elementId) {
+        const element = document.getElementById(elementId);
+        const button = event.target;
+
+        if (element.classList.contains('hidden')) {
+            element.classList.remove('hidden');
+            button.classList.remove('rotated'); // Remove a rotação
+        } else {
+            element.classList.add('hidden');
+            button.classList.add('rotated'); // Adiciona a rotação
+        }
+    }
+
+    function plotLGR() {
+        // Envie os parâmetros atuais para o backend
+        fetch('/lgr_backend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                polos_planta: polos_planta,
+                zeros_planta: zeros_planta,
+                ganho: ganho
+            })
+        })
+        .then(resp => resp.json())
+        .then((data) => {
+            if (data.lgr_plot && data.lgr_plot.data && data.lgr_plot.layout) {
+                Plotly.newPlot('plot-lgr', data.lgr_plot.data, data.lgr_plot.layout, {responsive: true}).then(function() {
+    var plotLgrDiv = document.getElementById('plot-lgr');
+    plotLgrDiv.on('plotly_click', function(eventData) {
+        if (eventData && eventData.points && eventData.points.length > 0) {
+            const pt = eventData.points[0];
+            // pt.x e pt.y são as coordenadas do clique (parte real e imaginária)
+            // Aqui você pode, por exemplo, atualizar o polo desejado na interface:
+            // Exemplo: atualizarPoloDesejado(pt.x, pt.y);
+            alert(`Polo desejado selecionado: ${pt.x.toFixed(2)} ${pt.y >= 0 ? '+' : '-'} ${Math.abs(pt.y).toFixed(2)}j`);
+        }
+    });
+});
+            } else {
+                Plotly.purge('plot-lgr');
+            }
+        })
+        .catch(() => {
+            Plotly.purge('plot-lgr');
+        });
+    }
+
+    const darkToggle = document.getElementById('dark-mode-toggle');
+const darkIcon = document.getElementById('dark-mode-icon');
+darkToggle.addEventListener('change', function(event) {
+    document.body.classList.toggle('dark-mode', event.target.checked);
+    darkIcon.textContent = document.body.classList.contains('dark-mode') ? '🌞' : '🌙';
+    localStorage.setItem('dark-mode', event.target.checked);
+});
+
+// Persistência do modo escuro
+if (localStorage.getItem('dark-mode') === 'true') {
+    document.body.classList.add('dark-mode');
+    darkToggle.checked = true;
+    darkIcon.textContent = '🌞';
+}
+</script>
+</body>
+</html>
