@@ -15,22 +15,29 @@
             flex-direction: row; /* Alinhamento horizontal */
             gap: 20px; /* Espaçamento entre os contêineres */
             width: 100%;
+            align-items: flex-start; /* <-- Adicionado para evitar esticar a altura */
         }
 
-        /* Contêiner de parâmetros */
+        /* Coluna de parâmetros fixa e rolável */
         .side-col {
-            flex: 1; /* Ocupa o espaço necessário */
+            /* Remova height, max-height, overflow-y */
             padding: 20px;
             background-color: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 56px;
+            z-index: 10;
+            min-width: 320px;
+            flex: none;
+            /* Removido: height, max-height, overflow-y */
         }
 
         /* Contêiner de gráficos */
         .main-col {
-            flex: 1; /* Ocupa o espaço necessário */
-            max-width: 50%; /* Limita a largura para caber ao lado */
+            flex: 1; /* Mantém o espaço da coluna da direita */
+            max-width: 45%; /* Limita a largura para evitar que os gráficos saiam */
             padding: 10px;
             background-color: #fff;
             border: 1px solid #ddd;
@@ -50,6 +57,7 @@
             justify-content: center;
             align-items: flex-start; /* Alinhar ao topo */
             min-height: 100vh;
+            zoom: 0.9;
             margin: 0;
             padding-top: 20px; /* Margem no topo */
         }
@@ -63,38 +71,153 @@
             width: 100%;
             max-width: 1200px; /* Limitar a largura máxima */
         }
+
+        /* Estilos do menu hamburguer */
+        .menu {
+            position: fixed;
+            top: 8px;
+            left: 8px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .menu-icon {
+            width: 30px;
+            height: 3px;
+            background-color: #333;
+            margin: 4px 0;
+            transition: background-color 0.3s;
+        }
+
+        .menu-content {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            margin-top: 8px;
+            z-index: 1001;
+            min-width: 260px;
+            max-width: 280px; /* Limita a largura máxima do menu */
+            padding: 18px;
+        }
+
+        .menu-content.open {
+            display: flex;
+        }
+
+        .menu-link {
+            text-decoration: none;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+            width: 100%;
+            text-align: left;
+            max-width: 240px; /* Limita a largura dos links */
+            margin: 10px 0 0 0;
+            font-size: 1em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .menu-link:hover {
+            background-color: #1976d2;
+            color: #fff;
+        }
+
+        #dark-mode-toggle {
+            margin-right: 8px;
+        }
+
+        /* Estilos para o modo escuro */
+        body.dark-mode .side-col {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+        body.dark-mode .main-col {
+            background-color: #2c2c2c;
+            border-color: #444;
+        }
+        body.dark-mode .menu-content {
+            background-color: #2c2c2c;
+            border-color: #444;
+        }
+
+        /* Estilos para o modo claro (padrão) */
+        .side-col {
+            background-color: #f9f9f9;
+            border-color: #ddd;
+        }
+        .main-col {
+            background-color: #fff;
+            border-color: #ddd;
+        }
+        .menu-content {
+            background-color: #fff;
+            border-color: #ddd;
+        }
+
+        .input-inline {
+            width: 55px;
+            min-width: 0;
+            font-size: 1em;
+            padding: 2px 4px;
+            margin: 0 2px;
+            border: 2px solid #f9f9f9 !important; /* Borda igual ao slider */
+            background: #f9f9fb;
+            border-radius: 4px;
+            text-align: right;
+        }
+        .param-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .param-slider {
+            width: 90px;
+            min-width: 0;
+            margin-right: 0;
+            accent-color: #4caf50;
+        }
     </style>
 </head>
 <body>
-    <!-- Menu de hambúrguer -->
-    <div class="menu">
-        <div id="menu-hamburger">
-            <div class="menu-icon"></div>
-            <div class="menu-icon"></div>
-            <div class="menu-icon"></div>
-        </div>
-        <div class="menu-content" id="menu-content">
-            
-            <label>
+    <!-- Menu de hambúrguer padrão pagina2 -->
+    <div class="menu" style="position:fixed; top:8px; left:8px; z-index:1000;">
+        <button id="menu-toggle-btn" style="background:none;border:none;cursor:pointer;padding:0;margin-right:8px;">
+            <div style="display:flex; flex-direction:column;">
+                <div class="menu-icon"></div>
+                <div class="menu-icon"></div>
+                <div class="menu-icon"></div>
+            </div>
+        </button>
+        <div class="menu-content">
+            <label style="margin-bottom:10px;">
                 <input id="dark-mode-toggle" type="checkbox">
-                Ativar Modo Escuro
+                <span id="dark-mode-icon">🌙</span>
             </label>
-            <a href="/principal" class="menu-link">Página Inicial</a>
-            <div>Modelagem</div>
-            <a href="/state" class="menu-link">Espaço de Estados (Sistema Mecânico)</a>
-            <div>Sinais e Sistemas</div>
-            <a href="/estabilidade" class="menu-link">Estabilidade</a>
+            <a href="/principal" class="menu-link" style="margin-top:16px;">Página Inicial</a>
+            <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Modelagem</div>
+            <a href="/state" class="menu-link">Espaço de Estados</a>
+            <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Sinais e Sistemas</div>
             <a href="/sinais" class="menu-link">Resposta do Sistema</a>
-            <div>Controle</div>
+            <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Controle</div>
             <a href="/alocacao" class="menu-link">Alocação de Polos</a>
             <a href="/raizes" class="menu-link">Lugar das Raízes</a>
-            <a href="/pagina2" class="menu-link">Malha Aberta</a>
-            <a href="/blocos" class="menu-link">Diagrama de Blocos</a>
-            <a href="/pagina4" class="menu-link">Simulador Completo</a>
+            <a href="/blocos" class=    "menu-link">Diagrama de Blocos</a>
+            <a href="/malhaaberta" class="menu-link">Malha Aberta</a>
+            <a href="/simuladorcomp" class="menu-link">Simulador Completo</a>
             <a href="/pid" class="menu-link">Avançado (PID)</a>
             <a href="/discreto" class="menu-link">Discreto</a>
-            
-            <button id="abrir-feedback">Enviar Feedback</button>
+            <button id="abrir-feedback" style="margin-top:10px;">Enviar Feedback</button>
         </div>
     </div>
     <div style="height:56px;"></div>
@@ -195,35 +318,47 @@
             document.getElementById('modalExplicacao').style.display = 'none';
         }
 
-        // Renderizar lista de coeficientes
+        // Função debounce
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Versão debounced do updateAll
+        const updateAllDebounced = debounce(updateAll, 30);
+
+        // Renderizar lista de coeficientes com slider
         function renderCoefList() {
             const container = document.getElementById('polinomio-coef-list');
             container.innerHTML = '';
             coeficientes_polinomio.forEach((val, idx) => {
                 const row = document.createElement('div');
                 row.className = 'param-row';
-                row.innerHTML = `<input type="number" class="input-inline" value="${val}" step="0.01"
-                    onchange="onCoefChange(${idx}, this.value)">
-                    <button class="remove-btn" onclick="removeCoef(${idx})">x</button>`;
+                row.innerHTML = `
+                    <input type="range" class="param-slider" min="-10" max="10" step="0.01" value="${val}" 
+                        oninput="onCoefSliderChangeDebounced(${idx}, this.value)">
+                    <input type="number" class="input-inline" value="${val}" step="0.01"
+                        oninput="onCoefChangeDebounced(${idx}, this.value)">
+                    <button class="remove-btn" onclick="removeCoef(${idx})">x</button>
+                `;
                 container.appendChild(row);
             });
         }
 
-        function addCoef() {
-            coeficientes_polinomio.push(0);
-            renderCoefList();
-            updateAll();
-        }
-
-        function removeCoef(idx) {
-            coeficientes_polinomio.splice(idx, 1);
-            renderCoefList();
-            updateAll();
-        }
-
-        function onCoefChange(idx, value) {
+        // Funções debounced para os inputs
+        function onCoefSliderChangeDebounced(idx, value) {
             coeficientes_polinomio[idx] = parseFloat(value);
-            updateAll();
+            document.querySelectorAll('.input-inline')[idx].value = value;
+            updateAllDebounced();
+        }
+
+        function onCoefChangeDebounced(idx, value) {
+            coeficientes_polinomio[idx] = parseFloat(value);
+            document.querySelectorAll('.param-slider')[idx].value = value;
+            updateAllDebounced();
         }
 
         function calcularModuloCaracteristico(coeficientes) {
@@ -406,6 +541,7 @@
                 plot.style.display = 'none';
                 button.innerHTML = '&#x25BC;'; // Seta para baixo
             }
+            updateAll(); // Atualiza os gráficos ao clicar
         }
 
         function updateAll() {
@@ -471,9 +607,19 @@
                 const omega = 2 * Math.PI; // Frequência angular (1 Hz)
                 const t = math.range(0, 10, 0.1).toArray(); // Intervalo de tempo
 
-                // Resposta senoidal (exemplo simples, pode ser ajustado para sistemas mais complexos)
+                // Calcula H(jw) usando os coeficientes atuais
+                const jw = math.complex(0, omega);
+                let P_jw = coeficientes_polinomio.reduce((acc, coef, idx) => {
+                    return math.add(acc, math.multiply(coef, math.pow(jw, coeficientes_polinomio.length - idx - 1)));
+                }, math.complex(0, 0));
+                let H_jw = math.divide(1, P_jw);
+
+                const mag = math.abs(H_jw);
+                const fase = math.arg(H_jw); // Em radianos
+
+                // Resposta senoidal em regime permanente
                 const resposta = t.map(val => {
-                    return A * Math.sin(omega * val) * Math.exp(-0.5 * val); // Exemplo com decaimento exponencial
+                    return mag * A * Math.sin(omega * val + fase);
                 });
 
                 const data = [
@@ -516,6 +662,22 @@
     }
 }
 
+        // Adiciona um novo coeficiente ao polinômio
+        function addCoef() {
+            coeficientes_polinomio.push(1); // Valor padrão 1
+            renderCoefList();
+            updateAll();
+        }
+
+        // Remove o coeficiente de índice idx
+        function removeCoef(idx) {
+            if (coeficientes_polinomio.length > 1) {
+                coeficientes_polinomio.splice(idx, 1);
+                renderCoefList();
+                updateAll();
+            }
+        }
+
         // Inicialização
         document.addEventListener('DOMContentLoaded', function () {
             renderCoefList();
@@ -527,28 +689,69 @@
             document.getElementById('seta-bode').onclick = () => togglePlotVisibility('seta-bode', 'plot-bode');
         });
 
-        // Menu Hambúrguer
-const menuHamburger = document.getElementById('menu-hamburger');
-const menuContent = document.getElementById('menu-content');
+        // Menu hamburguer interativo igual pagina2
+        document.addEventListener('DOMContentLoaded', function() {
+            // Menu hamburguer interativo com delay de 0.3s para fechar
+            const menu = document.querySelector('.menu');
+            const menuContent = document.querySelector('.menu-content');
+            const menuBtn = document.getElementById('menu-toggle-btn');
+            let closeMenuTimeout = null;
 
-// Abrir o menu ao passar o mouse por cima
-menuHamburger.addEventListener('mouseover', function () {
-    menuContent.classList.add('show');
-});
+            menu.classList.remove('open');
+            menuContent.style.display = 'none';
 
-// Fechar o menu ao tirar o mouse de cima
-menuHamburger.addEventListener('mouseout', function () {
-    menuContent.classList.remove('show');
-});
+            function openMenu() {
+                if (closeMenuTimeout) {
+                    clearTimeout(closeMenuTimeout);
+                    closeMenuTimeout = null;
+                }
+                menu.classList.add('open');
+                menuContent.style.display = 'block';
+            }
+            function closeMenu() {
+                menu.classList.remove('open');
+                menuContent.style.display = 'none';
+            }
 
-// Garantir que o menu não feche ao passar o mouse sobre ele
-menuContent.addEventListener('mouseover', function () {
-    menuContent.classList.add('show');
-});
+            menuBtn.addEventListener('mouseenter', openMenu);
+            menu.addEventListener('mouseenter', openMenu);
 
-menuContent.addEventListener('mouseout', function () {
-    menuContent.classList.remove('show');
-});
+            menu.addEventListener('mouseleave', function() {
+                closeMenuTimeout = setTimeout(closeMenu, 300);
+            });
+
+            menuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (menu.classList.contains('open')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!menu.contains(e.target)) {
+                    closeMenu();
+                }
+            });
+
+            // Dark mode toggle simplificado
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const darkModeIcon = document.getElementById('dark-mode-icon');
+            function setDarkMode(enabled) {
+                document.body.classList.toggle('dark-mode', enabled);
+                darkModeIcon.textContent = enabled ? '🌞' : '🌙';
+                localStorage.setItem('dark-mode', enabled);
+            }
+            // Inicializa estado do dark mode
+            const darkModeEnabled = localStorage.getItem('dark-mode') === 'true';
+            darkModeToggle.checked = darkModeEnabled;
+            setDarkMode(darkModeEnabled);
+
+            darkModeToggle.addEventListener('change', function(event) {
+                setDarkMode(event.target.checked);
+            });
+        });
     </script>
 </body>
 </html>

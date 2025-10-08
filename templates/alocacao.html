@@ -85,16 +85,17 @@
     }
 
     /* Estilos da faixa superior */
-    .top-bar {
+   .top-bar {
         display: flex;
         align-items: center;
+        border: 2px solid #ffffff;
         justify-content: center;
         position: relative;
         width: 100%;
         background: #fff;
         box-shadow: 0 2px 8px #0001;
-        padding: 8px 0 4px 0;
-        min-height: 38px;
+        padding: 8px 0 4px 0; /* diminui o padding vertical */
+        min-height: 38px;      /* diminui a altura mínima */
     }
     .top-bar .menu {
         position: absolute;
@@ -122,6 +123,11 @@
         font-size: 0.9em;
         cursor: pointer;
         position: relative;
+    }
+    .side-col, .center-col {
+    border: 2px solid #ffffff; /* Azul padrão, ajuste a cor se quiser */
+    border-radius: 10px;
+    background: #fff;
     }
     .info-icon:hover .info-tooltip {
         display: block;
@@ -163,10 +169,10 @@
         margin-right: 2px;
     }
     input[type="number"].input-inline {
-    border: 2px solid #fff !important;
-    background: #ffffff;
-    border-radius: 4px;
-}
+        border: 2px solid #fff !important;
+        background: #ffffff;
+        border-radius: 4px;
+    }
     .remove-btn {
         background: #d9534f;
         color: #fff;
@@ -188,6 +194,13 @@
         margin-top: 2px;
         margin-bottom: 2px;
     }
+    body.dark-mode .side-col .section-title {
+    color: #fff !important;
+    }
+    body.dark-mode .menu-icon {
+        background: #2196f3 !important; /* Azul */
+    }
+
     </style>
 </head>
 <body>
@@ -207,18 +220,12 @@
                     <span id="dark-mode-icon">🌙</span>
                 </label>
                 <a href="/principal" class="menu-link" style="margin-top:16px;">Página Inicial</a>
-                <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Modelagem</div>
-                <a href="/state" class="menu-link" style="margin-top:0;">Espaço de Estados</a>
                 <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Sinais e Sistemas</div>
                 <a href="/sinais" class="menu-link" style="margin-top:0;">Resposta do Sistema</a>
                 <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Controle</div>
-                <a href="/alocacao" class="menu-link" style="margin-top:0;">Alocação de Polos</a>
                 <a href="/raizes" class="menu-link" style="margin-top:0;">Lugar das Raízes</a>
                 <a href="/malhaaberta" class="menu-link" style="margin-top:0;">Malha Aberta</a>
                 <a href="/simuladorcomp" class="menu-link" style="margin-top:0;">Simulador Completo</a>
-                <a href="/blocos" class="menu-link" style="margin-top:0;">Diagrama de Blocos</a>
-                <a href="/pid" class="menu-link" style="margin-top:0;">Avançado (PID)</a>
-                <a href="/discreto" class="menu-link" style="margin-top:0;">Discreto</a>
                 <button id="abrir-feedback" style="margin-top:10px;">Enviar Feedback</button>
             </div>
         </div>
@@ -441,12 +448,24 @@
 
     <script>
     // --- Estado dos parâmetros ---
-    let polos_planta = [-0.0758];
+    let polos_planta = [-0.01];
     let zeros_planta = [];
     let polos_controlador = [];
     let zeros_controlador = [];
     let ganho_controlador = 1.0;
     let ganho_planta = 1.0;
+
+    // Função debounce
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Crie uma versão debounced da função updateAll
+    const updateAllDebounced = debounce(updateAll, 30);
 
     // Renderiza sliders e inputs sincronizados para polos/zeros
     function renderParamList(listId, arr, type) {
@@ -470,13 +489,13 @@
             document.getElementById(`${type}-input-${idx}`).oninput = function() {
                 arr[idx] = parseFloat(this.value);
                 document.getElementById(`${type}-slider-${idx}`).value = this.value;
-                updateAll();
+                updateAllDebounced();
             };
             // Sincroniza slider
             document.getElementById(`${type}-slider-${idx}`).oninput = function() {
                 arr[idx] = parseFloat(this.value);
                 document.getElementById(`${type}-input-${idx}`).value = this.value;
-                updateAll();
+                updateAllDebounced();
             };
         });
     }

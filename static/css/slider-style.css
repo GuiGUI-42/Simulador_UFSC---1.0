@@ -244,17 +244,23 @@ body.dark-mode {
 }
 
 /* Conteúdo central e lateral em azul escuro */
-body.dark-mode .center-col,
-body.dark-mode .side-col,
 body.dark-mode .box,
 body.dark-mode .latex-container,
 body.dark-mode .right-section,
+body.dark-mode .page-title,
+body.dark-mode .top-bar,
 body.dark-mode .left-section {
     background: #142447 !important; /* Azul escuro */
     border-color: #1e335c !important;
     color: #f4f4f9 !important;
 }
-
+body.dark-mode .center-col,
+body.dark-mode .side-col,
+body.dark-mode .main-col{
+    background: #142447 !important; /* Azul escuro */
+    border-color: #CF1259 !important;
+    color: #f4f4f9 !important;
+}
 /* Controlador: força fundo azul escuro no dark mode */
 body.dark-mode .left-section > div {
     background: #142447 !important;
@@ -536,19 +542,5 @@ body.dark-mode #poly-desejado-expl span {
     margin-right: 4px;
 }
 
-body.dark-mode input,
-body.dark-mode textarea,
-body.dark-mode select {
-    background: #223355 !important; /* azul escuro/cinza escuro */
-    color: #fff !important;         /* texto branco */
-    border: 1px solid #25477a !important;
-}
-
-body.dark-mode input:disabled,
-body.dark-mode textarea:disabled,
-body.dark-mode select:disabled {
-    background: #1e335c !important;
-    color: #b0b0b0 !important;
-}
 
 

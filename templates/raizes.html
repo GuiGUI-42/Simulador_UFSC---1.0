@@ -16,11 +16,13 @@
         }
         .side-col {
             flex: 1 1 350px; min-width: 340px; max-width: 420px;
+            border: 2px solid #ffffff;
             background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001;
             padding: 24px 24px 16px 24px;
         }
         .center-col {
             flex: 2 1 700px; min-width: 500px; max-width: 900px;
+            border: 2px solid #ffffff;
             background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001;
             padding: 24px 24px 16px 24px;
         }
@@ -35,6 +37,7 @@
         .highlight { background: #ffffff; padding: 8px; border-radius: 4px; display: inline-block; /* ou block, se quiser ocupar toda a linha */ min-width: 48px; /* largura mínima para evitar quebra feia */ word-break: break-word; /* quebra o texto se for muito longo */ vertical-align: middle; /* alinha melhor com o texto ao lado */ }
         .latex { font-size: 1.2em; margin: 8px 0; }
         .input-inline { width: 80px; font-size: 1em; padding: 2px 4px; margin: 2px 4px; }
+        .input-param { width: 56px; font-size: 1em; padding: 2px 4px; margin: 2px 4px; } /* NOVA CLASSE para inputs dos parâmetros */
         .param-list { margin-bottom: 8px; }
         .param-list label { font-weight: bold; }
         .param-row { margin-bottom: 4px; }
@@ -158,6 +161,7 @@
 .top-bar {
     display: flex;
     align-items: center;
+    border: 2px solid #ffffff;
     justify-content: center;
     position: relative;
     width: 100%;
@@ -211,15 +215,19 @@ body.dark-mode h4,
 body.dark-mode h3 {
     color: #f4f4f9 !important;
 }
+body.dark-mode .menu-icon {
+    background: #2196f3 !important; /* Azul */
+}
 
 /* Fundo das caixas no modo escuro */
-body.dark-mode .side-col,
-body.dark-mode .center-col,
 body.dark-mode .box,
 body.dark-mode .highlight {
     background: #182544 !important;
     border-color: #25477a !important;
 }
+
+
+
     </style>
 </head>
 <body>
@@ -238,17 +246,12 @@ body.dark-mode .highlight {
             
                 </label>
                 <a href="/principal" class="menu-link">Página Inicial</a>
-                <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Modelagem</div>
-                <a href="/state" class="menu-link">Espaço de Estados</a>
                 <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Sinais e Sistemas</div>
                 <a href="/sinais" class="menu-link">Resposta do Sistema</a>
                 <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Controle</div>
                 <a href="/alocacao" class="menu-link">Alocação de Polos</a>
                 <a href="/malhaaberta" class="menu-link">Malha Aberta</a>
-                <a href="/blocos" class="menu-link">Diagrama de Blocos</a>
                 <a href="/simuladorcomp" class="menu-link">Simulador Completo</a>
-                <a href="/pid" class="menu-link">Avançado (PID)</a>
-                <a href="/discreto" class="menu-link">Discreto</a>
                 <button id="abrir-feedback">Enviar Feedback</button>
             </div>
         </div>
@@ -275,7 +278,13 @@ body.dark-mode .highlight {
                         Polos determinam a estabilidade e a velocidade de resposta da planta.
                     </span>
                 </span>
-                <div id="planta-polos-list"></div>
+                <div id="planta-polos-list">
+                    <div class="param-row">
+                        <input type="range" class="param-slider" min="-10" max="1" step="0.01" value="-1" onchange="onParamChangeSlider('planta-polos', 0, this.value)">
+                        <input type="number" class="input-inline input-param" value="-1" step="0.01" onchange="onParamChange('planta-polos', 0, this.value)">
+                        <button class="remove-btn" onclick="removeParam('planta-polos', 0)">x</button>
+                    </div>
+                </div>
                 <button class="add-btn" onclick="addParam('planta-polos')">Adicionar Polo</button>
             </div>
             <div class="param-list">
@@ -305,7 +314,7 @@ body.dark-mode .highlight {
                 </span>
             </div>
             <div class="param-list">
-                <label>(\( K_c \)):</label>
+                <label>Ganho(\( K_c \)):</label>
                 <input type="number" id="ganho-controlador" class="input-inline" value="1.0" step="0.01" min="-10" onchange="updateAll(); analisarKLR();atualizarControlador();">
             </div>
             <div class="box">
@@ -457,16 +466,32 @@ body.dark-mode .highlight {
                         </span>
                     </span>
                 </label>
+            <div style="margin-bottom: 8px;">
+                <label for="tipo-lgr" style="font-weight:bold;"></label>
+                <select id="tipo-lgr" onchange="plotLGR()">
+                <option value="planta">Planta</option>
+                <option value="controlador">Controlador</option>
+                <option value="malha_aberta">Malha Aberta</option>
+                <option value="malha_fechada">Malha Fechada</option>
+                 </select>
+            </div>
                 <div id="plot-lgr" style="margin-top: 16px; width: 100%; min-height: 320px; height: 320px;"></div>
             </div>
             <!-- Gráfico do Lugar das Raízes acima do gráfico de resposta ao degrau -->
             <div style="margin-bottom: 32px;">
                 <label style="font-weight: bold; display: flex; align-items: center;">
                     <button class="toggle-button" onclick="toggleVisibility(event, 'plot-step')">▼</button>
-                    Resposta ao Degrau (Malha Fechada):
+                    Resposta ao Degrau:
                 </label>
+                <div style="margin-bottom: 8px;">
+                    <label for="tipo-step" style="font-weight:bold;"></label>
+                    <select id="tipo-step" onchange="plotStep()">
+                        <option value="malha_fechada">Malha Fechada</option>
+                        <option value="malha_aberta">Malha Aberta</option>
+                    </select>
+                </div>
                 <div id="plot-step" style="margin-top: 16px; width: 100%; min-height: 320px; height: 320px;"></div>
-            </div>
+            </div>  
         </div>
     </div>
 
@@ -545,20 +570,127 @@ body.dark-mode .highlight {
     let zeros_controlador = []; // Inicializa os zeros do controlador
     let condicaoFaseAtual = 0; // Condição de fase atual para recalculo do ângulo necessário
 
+// Função debounce
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+// Crie uma versão debounced da função updateAll
+const updateAllDebounced = debounce(updateAll, 30);
+
+// Adiciona função para atualização dinâmica ao mexer no slider dos parâmetros da planta
+function onParamChangeSlider(type, idx, value) {
+    value = parseFloat(value);
+    if (type === 'planta-polos') polos_planta[idx] = value;
+    if (type === 'planta-zeros') zeros_planta[idx] = value;
+    // REMOVIDO: updateParamLists();
+    calcularEspecificacoes();
+    updateAllDebounced();
+}
+
+// Adiciona função para atualização dinâmica ao mexer no slider dos parâmetros do controlador
+function onControladorParamChangeSlider(type, idx, value) {
+    value = parseFloat(value);
+    if (type === 'controlador-polos') polos_controlador[idx] = value;
+    if (type === 'controlador-zeros') zeros_controlador[idx] = value;
+    // REMOVIDO: updateControladorLists();
+    atualizarControlador();
+    updateAllDebounced();
+}
+
+// Só chame updateParamLists/updateControladorLists ao adicionar/remover polos/zeros:
+function addParam(type) {   
+    if (type === 'planta-polos') polos_planta.push(-1);
+    if (type === 'planta-zeros') zeros_planta.push(0);
+    calcularEspecificacoes();
+    updateParamLists();
+    updateAll();
+}
+
+function removeParam(type, idx) {
+    if (type === 'planta-polos') polos_planta.splice(idx, 1);
+    if (type === 'planta-zeros') zeros_planta.splice(idx, 1);
+    calcularEspecificacoes();
+    updateParamLists();
+    updateAll();
+}
+
+function addControladorParam(type) {
+    if (type === 'controlador-polos') polos_controlador.push(-1);
+    if (type === 'controlador-zeros') zeros_controlador.push(0);
+    updateControladorLists();
+    atualizarControlador();
+}
+
+function removeControladorParam(type, idx) {
+    if (type === 'controlador-polos') polos_controlador.splice(idx, 1);
+    if (type === 'controlador-zeros') zeros_controlador.splice(idx, 1);
+    updateControladorLists();
+    atualizarControlador();
+}
+
     function renderParamList(listId, arr, type) {
         const container = document.getElementById(listId);
         container.innerHTML = '';
         arr.forEach((val, idx) => {
             const row = document.createElement('div');
             row.className = 'param-row';
-            row.innerHTML = `<input type="number" class="input-inline" value="${val}" step="0.01"
-                onchange="onParamChange('${type}',${idx},this.value)">
-                <button class="remove-btn" onclick="removeParam('${type}',${idx})">x</button>`;
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="${type}-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+                <input type="number" class="input-inline input-param" id="${type}-input-${idx}" value="${val}" step="0.01">
+                <button class="remove-btn" onclick="removeParam('${type}',${idx})">x</button>
+            `;
             container.appendChild(row);
+
+            // Sincronização: slider <-> input
+            document.getElementById(`${type}-slider-${idx}`).oninput = function() {
+                arr[idx] = parseFloat(this.value);
+                document.getElementById(`${type}-input-${idx}`).value = this.value;
+                calcularEspecificacoes();
+                updateAllDebounced();
+            };
+            document.getElementById(`${type}-input-${idx}`).oninput = function() {
+                arr[idx] = parseFloat(this.value);
+                document.getElementById(`${type}-slider-${idx}`).value = this.value;
+                calcularEspecificacoes();
+                updateAllDebounced();
+            };
         });
     }
 
-    function addParam(type) {
+    // Renderização dos parâmetros do controlador
+    function renderControladorList(listId, arr, type) {
+        const container = document.getElementById(listId);
+        container.innerHTML = '';
+        arr.forEach((val, idx) => {
+            const row = document.createElement('div');
+            row.className = 'param-row';
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="${type}-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+                <input type="number" class="input-inline input-param" id="${type}-input-${idx}" value="${val}" step="0.01">
+                <button class="remove-btn" onclick="removeControladorParam('${type}',${idx})">x</button>
+            `;
+            container.appendChild(row);
+
+            // Sincronização: slider <-> input
+            document.getElementById(`${type}-slider-${idx}`).oninput = function() {
+                arr[idx] = parseFloat(this.value);
+                document.getElementById(`${type}-input-${idx}`).value = this.value;
+                atualizarControlador();
+            };
+            document.getElementById(`${type}-input-${idx}`).oninput = function() {
+                arr[idx] = parseFloat(this.value);
+                document.getElementById(`${type}-slider-${idx}`).value = this.value;
+                atualizarControlador();
+            };
+        });
+    }
+
+    function addParam(type) {   
         if (type === 'planta-polos') polos_planta.push(-1);
         if (type === 'planta-zeros') zeros_planta.push(0);
 
@@ -592,10 +724,24 @@ function renderControladorList(listId, arr, type) {
     arr.forEach((val, idx) => {
         const row = document.createElement('div');
         row.className = 'param-row';
-        row.innerHTML = `<input type="number" class="input-inline" value="${val}" step="0.01"
-            onchange="onControladorParamChange('${type}',${idx},this.value)">
-            <button class="remove-btn" onclick="removeControladorParam('${type}',${idx})">x</button>`;
+        row.innerHTML = `
+            <input type="range" class="param-slider" id="${type}-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+            <input type="number" class="input-inline" id="${type}-input-${idx}" value="${val}" step="0.01">
+            <button class="remove-btn" onclick="removeControladorParam('${type}',${idx})">x</button>
+        `;
         container.appendChild(row);
+
+        // Sincronização: slider <-> input
+        document.getElementById(`${type}-slider-${idx}`).oninput = function() {
+            arr[idx] = parseFloat(this.value);
+            document.getElementById(`${type}-input-${idx}`).value = this.value;
+            atualizarControlador();
+        };
+        document.getElementById(`${type}-input-${idx}`).oninput = function() {
+            arr[idx] = parseFloat(this.value);
+            document.getElementById(`${type}-slider-${idx}`).value = this.value;
+            atualizarControlador();
+        };
     });
 }
 
@@ -625,6 +771,15 @@ function addControladorParam(type) {
         // Atualiza a interface
         atualizarControlador(); // Atualiza a função de transferência do controlador
     }
+
+    function onControladorParamChangeSlider(type, idx, value) {
+    value = parseFloat(value);
+    if (type === 'controlador-polos') polos_controlador[idx] = value;
+    if (type === 'controlador-zeros') zeros_controlador[idx] = value;
+    // Sincroniza o input numérico
+    updateControladorLists();
+    atualizarControlador();
+}
 
     function updateParamLists() {
         renderParamList('planta-polos-list', polos_planta, 'planta-polos');
@@ -683,6 +838,7 @@ function addControladorParam(type) {
 
         analisarKLR();
         plotLGR(); // Adicione esta linha para atualizar o LGR sempre que os parâmetros mudarem
+        plotStep(); // Chama a função para atualizar o gráfico conforme seleção
     }
 
     function analisarKLR() {
@@ -789,12 +945,7 @@ function addControladorParam(type) {
     }
 
     function abrirModalEspecificacoes() {
-        document.getElementById('modal-especificacoes').style.display = 'block';
-        if (window.MathJax) MathJax.typesetPromise();
-    }
-
-    function fecharModalEspecificacoes() {
-        document.getElementById('modal-especificacoes').style.display = 'none';
+       
     }
 
     function abrirModalKLR() {
@@ -1033,37 +1184,66 @@ function addControladorParam(type) {
     }
 
     function plotLGR() {
-        // Envie os parâmetros atuais para o backend
+        const tipo = document.getElementById('tipo-lgr').value;
         fetch('/lgr_backend', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 polos_planta: polos_planta,
                 zeros_planta: zeros_planta,
-                ganho: ganho
+                ganho: ganho,
+                polos_controlador: polos_controlador,
+                zeros_controlador: zeros_controlador,
+                ganho_controlador: ganhoControlador,
+                tipo: tipo
             })
         })
         .then(resp => resp.json())
         .then((data) => {
             if (data.lgr_plot && data.lgr_plot.data && data.lgr_plot.layout) {
                 Plotly.newPlot('plot-lgr', data.lgr_plot.data, data.lgr_plot.layout, {responsive: true}).then(function() {
-    var plotLgrDiv = document.getElementById('plot-lgr');
-    plotLgrDiv.on('plotly_click', function(eventData) {
-        if (eventData && eventData.points && eventData.points.length > 0) {
-            const pt = eventData.points[0];
-            // pt.x e pt.y são as coordenadas do clique (parte real e imaginária)
-            // Aqui você pode, por exemplo, atualizar o polo desejado na interface:
-            // Exemplo: atualizarPoloDesejado(pt.x, pt.y);
-            alert(`Polo desejado selecionado: ${pt.x.toFixed(2)} ${pt.y >= 0 ? '+' : '-'} ${Math.abs(pt.y).toFixed(2)}j`);
-        }
-    });
-});
+                    var plotLgrDiv = document.getElementById('plot-lgr');
+                    plotLgrDiv.on('plotly_click', function(eventData) {
+                        if (eventData && eventData.points && eventData.points.length > 0) {
+                            const pt = eventData.points[0];
+                            alert(`Polo desejado selecionado: ${pt.x.toFixed(2)} ${pt.y >= 0 ? '+' : '-'} ${Math.abs(pt.y).toFixed(2)}j`);
+                        }
+                    });
+                });
             } else {
                 Plotly.purge('plot-lgr');
             }
         })
         .catch(() => {
             Plotly.purge('plot-lgr');
+        });
+    }
+
+    function plotStep() {
+        const tipo = document.getElementById('tipo-step').value;
+        fetch('/step_backend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                polos_planta: polos_planta,
+                zeros_planta: zeros_planta,
+                ganho: ganho,
+                polos_controlador: polos_controlador,
+                zeros_controlador: zeros_controlador,
+                ganho_controlador: ganhoControlador,
+                tipo: tipo
+            })
+        })
+        .then(resp => resp.json())
+        .then((data) => {
+            if (data.step_plot && data.step_plot.data && data.step_plot.layout) {
+                Plotly.newPlot('plot-step', data.step_plot.data, data.step_plot.layout, {responsive: true});
+            } else {
+                Plotly.purge('plot-step');
+            }
+        })
+        .catch(() => {
+            Plotly.purge('plot-step');
         });
     }
 

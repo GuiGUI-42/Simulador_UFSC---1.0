@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Controle - Malha Aberta</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/slider-style.css') }}">
+    <link rel="stylesheet" href="/static/css/slider-style.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -32,9 +32,14 @@
             padding-left: 24px;
             padding-right: 24px;
         }
+        body.dark-mode .left-section,
+        body.dark-mode .right-section {
+            border-color: #CF1259 !important; /* Escolha a cor desejada */
+        }
         .left-section {
             flex: 0 0 30%;
             width: 30%;
+            border: 2px solid #ffffff;
             min-width: 350px;
             background: #fff;
             border-radius: 8px;
@@ -48,6 +53,7 @@
         }
         .right-section {
             flex: 1 1 0;
+            border: 2px solid #ffffff;
             width: 100%;
             min-width: 0;
             background: #fff;
@@ -202,17 +208,12 @@
                 <span id="dark-mode-icon">🌙</span>
             </label>
             <a href="/principal" class="menu-link" style="margin-top:16px;">Página Inicial</a>
-            <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Modelagem</div>
-            <a href="/state" class="menu-link" style="margin-top:0;">Espaço de Estados</a>
             <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Sinais e Sistemas</div>
             <a href="/sinais" class="menu-link" style="margin-top:0;">Resposta do Sistema</a>
             <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Controle</div>
             <a href="/alocacao" class="menu-link" style="margin-top:0;">Alocação de Polos</a>
             <a href="/raizes" class="menu-link" style="margin-top:0;">Lugar das Raízes</a>
-            <a href="/blocos" class="menu-link" style="margin-top:0;">Diagrama de Blocos</a>
             <a href="/simuladorcomp" class="menu-link" style="margin-top:0;">Simulador Completo</a>
-            <a href="/pid" class="menu-link" style="margin-top:0;">Avançado (PID)</a>
-            <a href="/discreto" class="menu-link" style="margin-top:0;">Discreto</a>
             <button id="abrir-feedback" style="margin-top:10px;">Enviar Feedback</button>
         </div>
     </div>
@@ -290,119 +291,131 @@
     let polosPlanta = [-1];
     let zerosPlanta = [0];
 
-    // --- Renderiza os inputs dos polos e zeros no estilo da imagem ---
-    function renderPlantaInputs() {
-        // Polos
-        const polosList = document.getElementById('polos-list');
-        polosList.innerHTML = '';
-        polosPlanta.forEach((val, idx) => {
-            const row = document.createElement('div');
-            row.className = 'input-row';
-            row.innerHTML = `
-                <input type="range" class="param-slider" id="polo-planta-slider-${idx}" min="-10" max="1" step="0.01" value="${val}">
-                <input type="number" class="param-input" id="polo-planta-input-${idx}" min="-10" max="1" step="0.01" value="${val}">
-                <button type="button" class="remove-btn" id="remove-polo-${idx}" title="Remover Polo">&times;</button>
-            `;
-            polosList.appendChild(row);
+    // Função debounce
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
 
-            // Input numérico
-            document.getElementById(`polo-planta-input-${idx}`).oninput = function() {
-                polosPlanta[idx] = parseFloat(this.value);
-                document.getElementById(`polo-planta-slider-${idx}`).value = this.value;
-                atualizar();
-            };
-            // Slider
-            document.getElementById(`polo-planta-slider-${idx}`).oninput = function() {
-                polosPlanta[idx] = parseFloat(this.value);
-                document.getElementById(`polo-planta-input-${idx}`).value = this.value;
-                atualizar();
-            };
-            // Remover
-            document.getElementById(`remove-polo-${idx}`).onclick = function() {
-                if (polosPlanta.length > 1) {
-                    polosPlanta.splice(idx, 1);
-                    renderPlantaInputs();
-                    atualizar();
-                }
-            };
-        });
+// Crie uma versão debounced da função atualizar
+const atualizarDebounced = debounce(atualizar,30);
 
-        // Zeros
-        const zerosList = document.getElementById('zeros-list');
-        zerosList.innerHTML = '';
-        zerosPlanta.forEach((val, idx) => {
-            const row = document.createElement('div');
-            row.className = 'input-row';
-            row.innerHTML = `
-                <input type="range" class="param-slider" id="zero-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
-                <input type="number" class="param-input" id="zero-planta-input-${idx}" min="-10" max="10" step="0.01" value="${val}">
-                <button type="button" class="remove-btn" id="remove-zero-${idx}" title="Remover Zero">&times;</button>
-            `;
-            zerosList.appendChild(row);
+// --- Renderiza os inputs dos polos e zeros no estilo da imagem ---
+function renderPlantaInputs() {
+    // Polos
+    const polosList = document.getElementById('polos-list');
+    polosList.innerHTML = '';
+    polosPlanta.forEach((val, idx) => {
+        const row = document.createElement('div');
+        row.className = 'input-row';
+        row.innerHTML = `
+            <input type="range" class="param-slider" id="polo-planta-slider-${idx}" min="-10" max="1" step="0.01" value="${val}">
+            <input type="number" class="param-input" id="polo-planta-input-${idx}" min="-10" max="1" step="0.01" value="${val}">
+            <button type="button" class="remove-btn" id="remove-polo-${idx}" title="Remover Polo">&times;</button>
+        `;
+        polosList.appendChild(row);
 
-            // Input numérico
-            document.getElementById(`zero-planta-input-${idx}`).oninput = function() {
-                zerosPlanta[idx] = parseFloat(this.value);
-                document.getElementById(`zero-planta-slider-${idx}`).value = this.value;
-                atualizar();
-            };
-            // Slider
-            document.getElementById(`zero-planta-slider-${idx}`).oninput = function() {
-                zerosPlanta[idx] = parseFloat(this.value);
-                document.getElementById(`zero-planta-input-${idx}`).value = this.value;
-                atualizar();
-            };
-            // Remover
-            document.getElementById(`remove-zero-${idx}`).onclick = function() {
-                zerosPlanta.splice(idx, 1);
-                renderPlantaInputs();
-                atualizar();
-            };
-        });
-    }
-
-    // --- Botões para adicionar polos e zeros ---
-    function setupPlantaBtns() {
-        document.getElementById('add-polo-btn').onclick = function() {
-            polosPlanta.push(-1);
-            renderPlantaInputs();
-            atualizar();
+        // Input numérico
+        document.getElementById(`polo-planta-input-${idx}`).oninput = function() {
+            polosPlanta[idx] = parseFloat(this.value);
+            document.getElementById(`polo-planta-slider-${idx}`).value = this.value;
+            atualizarDebounced();
         };
-        document.getElementById('add-zero-btn').onclick = function() {
-            if (zerosPlanta.length < polosPlanta.length) {
+        // Slider
+        document.getElementById(`polo-planta-slider-${idx}`).oninput = function() {
+            polosPlanta[idx] = parseFloat(this.value);
+            document.getElementById(`polo-planta-input-${idx}`).value = this.value;
+            atualizarDebounced();
+        };
+        // Remover
+        document.getElementById(`remove-polo-${idx}`).onclick = function() {
+            if (polosPlanta.length > 1) {
+                polosPlanta.splice(idx, 1);
+                renderPlantaInputs();
+                atualizarDebounced();
+            }
+        };
+    });
+
+    // Zeros
+    const zerosList = document.getElementById('zeros-list');
+    zerosList.innerHTML = '';
+    zerosPlanta.forEach((val, idx) => {
+        const row = document.createElement('div');
+        row.className = 'input-row';
+        row.innerHTML = `
+            <input type="range" class="param-slider" id="zero-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+            <input type="number" class="param-input" id="zero-planta-input-${idx}" min="-10" max="10" step="0.01" value="${val}">
+            <button type="button" class="remove-btn" id="remove-zero-${idx}" title="Remover Zero">&times;</button>
+        `;
+        zerosList.appendChild(row);
+
+        // Input numérico
+        document.getElementById(`zero-planta-input-${idx}`).oninput = function() {
+            zerosPlanta[idx] = parseFloat(this.value);
+            document.getElementById(`zero-planta-slider-${idx}`).value = this.value;
+            atualizarDebounced();
+        };
+        // Slider
+        document.getElementById(`zero-planta-slider-${idx}`).oninput = function() {
+            zerosPlanta[idx] = parseFloat(this.value);
+            document.getElementById(`zero-planta-input-${idx}`).value = this.value;
+            atualizarDebounced();
+        };
+        // Remover
+        document.getElementById(`remove-zero-${idx}`).onclick = function() {
+            zerosPlanta.splice(idx, 1);
+            renderPlantaInputs();
+            atualizarDebounced();
+        };
+    });
+}
+
+// --- Botões para adicionar polos e zeros ---
+function setupPlantaBtns() {
+    document.getElementById('add-polo-btn').onclick = function() {
+        polosPlanta.push(-1);
+        renderPlantaInputs();
+        atualizar();
+    };
+    document.getElementById('add-zero-btn').onclick = function() {
+        if (zerosPlanta.length < polosPlanta.length) {
         zerosPlanta.push(0);
         renderPlantaInputs();
         atualizar();
     } else {
         alert("Não é permitido adicionar mais zeros que polos!");
     }
-        };
-    }
+    };
+}
 
-    // --- Atualização dos gráficos e LaTeX ---
-    async function atualizar() {
-        // Monta arrays atuais dos polos/zeros
-        const polos = polosPlanta.map((_, idx) =>
-            parseFloat(document.getElementById(`polo-planta-input-${idx}`).value)
-        );
-        const zeros = zerosPlanta.map((_, idx) =>
-            parseFloat(document.getElementById(`zero-planta-input-${idx}`)?.value ?? 0)
-        );
-        polosPlanta = polos;
-        zerosPlanta = zeros;
+// --- Atualização dos gráficos e LaTeX ---
+async function atualizar() {
+    // Monta arrays atuais dos polos/zeros
+    const polos = polosPlanta.map((_, idx) =>
+        parseFloat(document.getElementById(`polo-planta-input-${idx}`).value)
+    );
+    const zeros = zerosPlanta.map((_, idx) =>
+        parseFloat(document.getElementById(`zero-planta-input-${idx}`)?.value ?? 0)
+    );
+    polosPlanta = polos;
+    zerosPlanta = zeros;
 
-        const data = {
-            polos_planta: polosPlanta,
-            zeros_planta: zerosPlanta
-        };
-        const res = await fetch('/atualizar_pagina2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        const result = await res.json();
+    const data = {
+        polos_planta: polosPlanta,
+        zeros_planta: zerosPlanta
+    };
+    const res = await fetch('/atualizar_pagina2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    const result = await res.json();
 
-        document.getElementById('latex_planta_polinomial').innerHTML = result.latex_planta_polinomial || "Erro ao carregar forma polinomial";
+    document.getElementById('latex_planta_polinomial').innerHTML = result.latex_planta_polinomial || "Erro ao carregar forma polinomial";
 document.getElementById('latex_planta_fatorada').innerHTML = result.latex_planta_fatorada || "Erro ao carregar forma fatorada";
 document.getElementById('latex_planta_parcial').innerHTML = result.latex_planta_parcial || "Erro ao carregar fração parcial";
 if (window.MathJax) MathJax.typesetPromise();

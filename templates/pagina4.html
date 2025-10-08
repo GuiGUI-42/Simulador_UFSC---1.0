@@ -12,11 +12,13 @@
     <style>
     .right-section {
         overflow: visible !important;
+        border: 2px solid #ffffff;
         height: auto !important;
         max-height: none !important;
     }
     .left-section {
         overflow: visible !important;
+        border: 2px solid #ffffff;
         height: auto !important;
         max-height: none !important;
     }
@@ -32,7 +34,10 @@
             zoom: 0.9;
             transition: background 0.3s, color 0.3s;
     }
-   
+    body.dark-mode .left-section,
+    body.dark-mode .right-section {
+        border-color: #CF1259 !important; /* Escolha a cor desejada */
+    }
     .main-container {
         align-items: flex-start !important;
     }
@@ -95,6 +100,10 @@
         font-size: 0.75em;
         padding: 1px 2px;
     }
+    body.dark-mode #parametros-fixos {
+    background: #142447 !important; /* mesmo fundo do controlador */
+    color: #fff !important;
+    }
 
     .input-row {
         display: flex;
@@ -133,18 +142,13 @@
                 <input id="dark-mode-toggle" type="checkbox">
                 <span id="dark-mode-icon">🌙</span>
             </label>
-             <a href="/principal" class="menu-link" style="margin-top:16px;">Página Inicial</a>
-            <div style="margin-top:10px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Modelagem</div>
-            <a href="/state" class="menu-link" style="margin-top:0;">Espaço de Estados</a>
+            <a href="/principal" class="menu-link" style="margin-top:16px;">Página Inicial</a>
             <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Sinais e Sistemas</div>
             <a href="/sinais" class="menu-link" style="margin-top:0;">Resposta do Sistema</a>
             <div style="margin-top:16px; margin-bottom:2px; font-weight:bold; color:#1976d2;">Controle</div>
             <a href="/alocacao" class="menu-link" style="margin-top:0;">Alocação de Polos</a>
             <a href="/raizes" class="menu-link" style="margin-top:0;">Lugar das Raízes</a>
             <a href="/malhaaberta" class="menu-link" style="margin-top:0;">Malha Aberta</a>
-            <a href="/blocos" class="menu-link" style="margin-top:0;">Diagrama de Blocos</a>
-            <a href="/pid" class="menu-link" style="margin-top:0;">Avançado (PID)</a>
-            <a href="/discreto" class="menu-link" style="margin-top:0;">Discreto</a>
            
             <button id="abrir-feedback" style="margin-top:10px;">Enviar Feedback</button>
         </div>
@@ -283,6 +287,8 @@
                     <input id="input-t-fechada-grafico" type="number" min="0" max="50" step="0.1" value="20" style="width: 60px;">
                     <label for="input-a-fechada-grafico">Amplitude:</label>
                     <input id="input-a-fechada-grafico" type="number" min="-2" max="2" step="0.01" value="0" style="width: 60px;">
+                    <!-- NOVO SLIDER DE AMPLITUDE -->
+                    <input type="range" id="slider-a-fechada-grafico" min="-2" max="2" step="0.01" value="0" style="width: 180px;">
                 </div>
                 <div id="plot_closed"></div>
             </div>
@@ -348,6 +354,18 @@ let zerosPlanta = [];
 let polosControlador = [-1];
 let zerosControlador = [];
 
+// Função debounce
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+// Crie uma versão debounced da função atualizarTudo
+const atualizarTudoDebounced = debounce(atualizarTudo, 30);
+
 function renderInputs() {
     // Planta - Polos
     const polosList = document.getElementById('planta-polos-list');
@@ -365,20 +383,20 @@ function renderInputs() {
         document.getElementById(`polo-planta-input-${idx}`).oninput = function() {
             polosPlanta[idx] = parseFloat(this.value);
             document.getElementById(`polo-planta-slider-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Slider
         document.getElementById(`polo-planta-slider-${idx}`).oninput = function() {
             polosPlanta[idx] = parseFloat(this.value);
             document.getElementById(`polo-planta-input-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Remover
         document.getElementById(`remove-planta-polo-${idx}`).onclick = function() {
             if (polosPlanta.length > 1) {
                 polosPlanta.splice(idx, 1);
                 renderInputs();
-                atualizarTudo();
+                atualizarTudoDebounced();
             }
         };
     });
@@ -398,19 +416,19 @@ function renderInputs() {
         document.getElementById(`zero-planta-input-${idx}`).oninput = function() {
             zerosPlanta[idx] = parseFloat(this.value);
             document.getElementById(`zero-planta-slider-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Slider
         document.getElementById(`zero-planta-slider-${idx}`).oninput = function() {
             zerosPlanta[idx] = parseFloat(this.value);
             document.getElementById(`zero-planta-input-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Remover
         document.getElementById(`remove-planta-zero-${idx}`).onclick = function() {
             zerosPlanta.splice(idx, 1);
             renderInputs();
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
     });
     // Controlador - Polos
@@ -429,20 +447,20 @@ function renderInputs() {
         document.getElementById(`polo-controlador-input-${idx}`).oninput = function() {
             polosControlador[idx] = parseFloat(this.value);
             document.getElementById(`polo-controlador-slider-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Slider
         document.getElementById(`polo-controlador-slider-${idx}`).oninput = function() {
             polosControlador[idx] = parseFloat(this.value);
             document.getElementById(`polo-controlador-input-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Remover
         document.getElementById(`remove-controlador-polo-${idx}`).onclick = function() {
             if (polosControlador.length > 1) {
                 polosControlador.splice(idx, 1);
                 renderInputs();
-                atualizarTudo();
+                atualizarTudoDebounced();
             }
         };
     });
@@ -462,19 +480,19 @@ function renderInputs() {
         document.getElementById(`zero-controlador-input-${idx}`).oninput = function() {
             zerosControlador[idx] = parseFloat(this.value);
             document.getElementById(`zero-controlador-slider-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Slider
         document.getElementById(`zero-controlador-slider-${idx}`).oninput = function() {
             zerosControlador[idx] = parseFloat(this.value);
             document.getElementById(`zero-controlador-input-${idx}`).value = this.value;
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
         // Remover
         document.getElementById(`remove-controlador-zero-${idx}`).onclick = function() {
             zerosControlador.splice(idx, 1);
             renderInputs();
-            atualizarTudo();
+            atualizarTudoDebounced();
         };
     });
 }
@@ -502,7 +520,18 @@ function setupBtns() {
     };
     document.getElementById('ganho-controlador').oninput = atualizarTudo;
     document.getElementById('input-t-fechada-grafico').oninput = atualizarTudo;
-    document.getElementById('input-a-fechada-grafico').oninput = atualizarTudo;
+
+    // Sincronização entre input e slider de amplitude
+    const inputAmp = document.getElementById('input-a-fechada-grafico');
+    const sliderAmp = document.getElementById('slider-a-fechada-grafico');
+    inputAmp.oninput = function() {
+        sliderAmp.value = this.value;
+        atualizarTudoDebounced();
+    };
+    sliderAmp.oninput = function() {
+        inputAmp.value = this.value;
+        atualizarTudoDebounced();
+    };
 }
 
 async function atualizarTudo() {
@@ -519,6 +548,7 @@ async function atualizarTudo() {
     // Monte os dados para o backend
     const ganhoControlador = parseFloat(document.getElementById('ganho-controlador').value);
     const t_perturb_fechada = parseFloat(document.getElementById('input-t-fechada-grafico').value);
+    // Use SEMPRE o valor do input de amplitude (sincronizado com slider)
     const amp_perturb_fechada = parseFloat(document.getElementById('input-a-fechada-grafico').value);
 
     const data = {

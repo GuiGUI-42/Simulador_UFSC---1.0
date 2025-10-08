@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  simulador:
+    build: .
+    container_name: simulador-flask
+    ports:
+      - "8080:8080"
+    environment:
+      - FLASK_APP=simulador_flask.py
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app
+    restart: unless-stopped

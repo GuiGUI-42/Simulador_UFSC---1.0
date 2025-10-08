@@ -1300,19 +1300,46 @@ def novo_grafico_fechado():
 @app.route('/lgr_backend', methods=['POST'])
 def lgr_backend():
     data = request.get_json()
+    tipo = data.get("tipo", "planta")
     polos_planta = [float(p) for p in data.get("polos_planta", [-1])]
     zeros_planta = [float(z) for z in data.get("zeros_planta", [])]
     ganho = float(data.get("ganho", 1.0))
+    polos_controlador = [float(p) for p in data.get("polos_controlador", [])]
+    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [])]
+    ganho_controlador = float(data.get("ganho_controlador", 1.0))
 
     try:
-        num = ganho * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
-        den = np.poly(polos_planta) if polos_planta else np.array([1.0])
-        G = ctl.tf(num, den)
-
-        latex_planta = f"\\[ G(s) = {ganho:.3g} \\cdot \\frac{{{latex_factored(zeros_planta, 's')}}}{{{latex_factored(polos_planta, 's')}}} \\]"
+        # Seleciona a FT conforme o tipo
+        if tipo == "planta":
+            num = ganho * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
+            den = np.poly(polos_planta) if polos_planta else np.array([1.0])
+            latex_planta = f"\\[ G(s) = {ganho:.3g} \\cdot \\frac{{{latex_factored(zeros_planta, 's')}}}{{{latex_factored(polos_planta, 's')}}} \\]"
+        elif tipo == "controlador":
+            num = ganho_controlador * (np.poly(zeros_controlador) if zeros_controlador else np.array([1.0]))
+            den = np.poly(polos_controlador) if polos_controlador else np.array([1.0])
+            latex_planta = f"\\[ G_c(s) = {ganho_controlador:.3g} \\cdot \\frac{{{latex_factored(zeros_controlador, 's')}}}{{{latex_factored(polos_controlador, 's')}}} \\]"
+        elif tipo == "malha_aberta":
+            num_planta = ganho * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
+            den_planta = np.poly(polos_planta) if polos_planta else np.array([1.0])
+            num_controlador = ganho_controlador * (np.poly(zeros_controlador) if zeros_controlador else np.array([1.0]))
+            den_controlador = np.poly(polos_controlador) if polos_controlador else np.array([1.0])
+            num = np.polymul(num_planta, num_controlador)
+            den = np.polymul(den_planta, den_controlador)
+            latex_planta = f"\\[ G_{'{aberta}'}(s) = G(s) \\cdot G_c(s) \\]"
+        else:  # malha_fechada
+            num_planta = ganho * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
+            den_planta = np.poly(polos_planta) if polos_planta else np.array([1.0])
+            num_controlador = ganho_controlador * (np.poly(zeros_controlador) if zeros_controlador else np.array([1.0]))
+            den_controlador = np.poly(polos_controlador) if polos_controlador else np.array([1.0])
+            G_open = ctl.tf(np.polymul(num_planta, num_controlador), np.polymul(den_planta, den_controlador))
+            G_closed = ctl.feedback(G_open)
+            num = np.array(G_closed.num).flatten()
+            den = np.array(G_closed.den).flatten()
+            latex_planta = f"\\[ G_{'{fechada}'}(s) = \\frac{{G(s) \\cdot G_c(s)}}{{1 + G(s) \\cdot G_c(s)}} \\]"
 
         # Lugar das Raízes (LGR)
         try:
+            G = ctl.tf(num, den)
             rlist, klist = ctl.root_locus(G, plot=False)
             lgr_data = []
             for i in range(rlist.shape[1]):
@@ -1361,6 +1388,47 @@ def lgr_backend():
     except Exception as e:
         print("Erro geral no lgr_backend:", e)
         return jsonify({"lgr_plot": {"data": [], "layout": {"title": f"Erro geral: {e}"}}})
+
+@app.route('/step_backend', methods=['POST'])
+def step_backend():
+    data = request.get_json()
+    tipo = data.get("tipo", "malha_fechada")
+    polos_planta = [float(p) for p in data.get("polos_planta", [-1])]
+    zeros_planta = [float(z) for z in data.get("zeros_planta", [])]
+    ganho = float(data.get("ganho", 1.0))
+    polos_controlador = [float(p) for p in data.get("polos_controlador", [])]
+    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [])]
+    ganho_controlador = float(data.get("ganho_controlador", 1.0))
+
+    # Funções de transferência
+    num_planta = ganho * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
+    den_planta = np.poly(polos_planta) if polos_planta else np.array([1.0])
+    num_controlador = ganho_controlador * (np.poly(zeros_controlador) if zeros_controlador else np.array([1.0]))
+    den_controlador = np.poly(polos_controlador) if polos_controlador else np.array([1.0])
+
+    T = np.linspace(0, 50, 1000)
+    if tipo == "malha_aberta":
+        G_open = ctl.tf(num_planta, den_planta)
+        _, yout = ctl.step_response(G_open, T)
+        title = "Resposta ao Degrau (Malha Aberta)"
+    else:
+        G_planta = ctl.tf(num_planta, den_planta)
+        G_controlador = ctl.tf(num_controlador, den_controlador)
+        G_closed = ctl.feedback(G_planta * G_controlador)
+        _, yout = ctl.step_response(G_closed, T)
+        title = "Resposta ao Degrau (Malha Fechada)"
+
+    step_plot = {
+        "data": [
+            {"x": T.tolist(), "y": yout.tolist(), "mode": "lines", "name": title}
+        ],
+        "layout": {
+            "title": title,
+            "xaxis": {"title": "Tempo (s)"},
+            "yaxis": {"title": "Amplitude"}
+        }
+    }
+    return jsonify({"step_plot": step_plot})
 
 if __name__ == '__main__':
     app.run(debug=True)
