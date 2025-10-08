@@ -7,9 +7,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - FLASK_APP=simulador_flask.py
-      - FLASK_ENV=production
-      - PYTHONUNBUFFERED=1
+      FLASK_APP: simulador_flask.py
+      FLASK_ENV: production
+      PYTHONUNBUFFERED: 1
     volumes:
-      - .:/app
+      - .:/app  # Remova se não quiser sobrescrever o código do container com o local
     restart: unless-stopped
