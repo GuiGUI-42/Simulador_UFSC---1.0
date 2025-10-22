@@ -1,0 +1,318 @@
+/* Barra superior (título centralizado + menu à esquerda) */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0px;
+  width: 100%;
+  background: #ffffff;
+  box-shadow: 0 2px 8px #0001;
+  zoom:1.1;
+  margin-bottom: 3px;
+  padding: 8px 0 6px 0;
+  z-index: 100;
+}
+.page-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.3em;
+  font-weight: 800;
+  color: #1976d2;
+}
+
+/* Faixa de ferramentas (abaixo do título) */
+.tools-bar {
+  position: fixed;
+  top: 54px;              /* logo abaixo do título fixo */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #ffffff, #f7f9ff);
+  border: 1px solid #e3ecff;
+  box-shadow: 0 4px 14px #0001;
+  z-index: 90;
+}
+.tools-left, .tools-right { display: flex; align-items: center; gap: 10px; }
+.tools-left { position: relative; }     /* ancora o menu de adicionar */
+
+/* Botões da faixa */
+.tool-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  background: #fff;
+  color: #1976d2;
+  box-shadow: 0 2px 8px #0001;
+  transition: all .15s;
+}
+.tool-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px #0002; }
+.tool-btn.add { background: #2196f3; color: #fff; }
+.tool-btn.add.active { outline: 3px solid #bbdefb; }
+.tool-btn.danger { color: #ff1744; border-color: #ff1744; background: #fff; }
+.tool-btn.danger.active { background: #ff1744; color: #fff; }
+
+/* Área de edição (mesmo de antes) */
+body { background: #f3f3f7; font-family: sans-serif; margin: 0; }
+.blocos-container { 
+  position: relative;
+  width: 1400px;
+  height: 800px;
+  background: #e9e9f3;
+  border: 2px dashed #0a0101;
+  margin: 0 auto 24px;    /* sobe a área já que a faixa ocupa o espaço acima */
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Paleta de blocos (menu que abre a partir do botão +) */
+.add-menu {
+  position: absolute;
+  left: 0;
+  top: 56px;              /* aparece logo abaixo do botão + da tools-bar */
+  background: #fff;
+  border: 1.5px solid #2196f3;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px #0002;
+  min-width: 320px;
+  max-width: 420px;
+  padding: 10px;
+  z-index: 120;
+}
+.add-search {
+  width: 93%;
+  padding: 8px 10px;
+  border: 1px solid #c5d4ff;
+  border-radius: 6px;
+  outline: none;
+  margin-bottom: 10px;
+}
+.add-grid { display: grid; grid-template-columns: repeat(2, minmax(140px, 1fr)); gap: 8px; }
+.add-item {
+  background: #fff;
+  border: 2px solid #2196f3;
+  color: #333;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 1px 4px #0001;
+}
+.add-item:hover { background: #f7fbff; }
+
+/* (restante inalterado) */
+.bloco {
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgb(92, 29, 227);
+  padding: 16px 24px;
+  min-width: 150px;
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 0.2s;
+}
+.bloco.dragging {
+  opacity: 0.7;
+  z-index: 10;
+  box-shadow: 0 8px 24px #0003;
+  cursor: grabbing;
+}
+.io-dot {
+  width: 16px; height: 16px; border-radius: 50%; background: #504136;
+  position: absolute; top: 50%; transform: translateY(-50%);
+  cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 4px #0002;
+  z-index: 2;
+}
+.io-dot.input { left: -10px; }
+.io-dot.output { right: -10px; }
+.io-dot.active { background: #ff9800; }
+.svg-links { position: absolute; left: 0; top: 0; z-index: 1; }
+
+/* Menu idêntico ao das páginas HTML */
+.menu-icon {
+  width: 28px;
+  height: 4px;
+  background: #1976d2;
+  margin: 3px 0;
+  border-radius: 2px;
+}
+.menu-content {
+  display: none;
+  position: absolute;
+  left: 40px;
+  top: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  padding: 18px;
+  min-width: 260px;
+  z-index: 1001;
+}
+.menu.open .menu-content,
+.menu:hover .menu-content,
+.menu:focus-within .menu-content { display: block; }
+.menu.open, .menu:hover, .menu:focus-within { z-index: 1002; }
+
+/* Links do menu (estilo igual às páginas) */
+.menu-link {
+  display: block;
+  margin: 12px 0 0 0;
+  padding: 8px 16px;
+  background: linear-gradient(90deg, #2196f3 0%, #4caf50 100%);
+  color: #fff !important;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 6px rgba(33,150,243,0.08);
+}
+.menu-link:hover {
+  background: linear-gradient(90deg, #4caf50 0%, #2196f3 100%);
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(33,150,243,0.18);
+  text-decoration: none;
+}
+
+/* Suporte ao dark-mode do menu (coerente com as outras páginas) */
+body.dark-mode .menu-content {
+  background: #25477a !important;
+  color: #f4f4f9 !important;
+  border-color: #1e335c !important;
+}
+
+/* Tema escuro global (ativado por body.dark-mode) */
+body.dark-mode {
+  background: #242424;
+  color: rgba(255,255,255,0.87);
+}
+
+/* Topo */
+body.dark-mode .top-bar {
+  background: #1f1f1f;
+  box-shadow: 0 2px 8px #0008;
+  border-bottom: 1px solid #333;
+}
+body.dark-mode .page-title { color: #90caf9; }
+
+/* Faixa de ferramentas */
+body.dark-mode .tools-bar {
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+  border-color: #334155;
+  box-shadow: 0 4px 14px #0008;
+}
+body.dark-mode .tool-btn {
+  background: #0b1220;
+  color: #90caf9;
+  box-shadow: 0 2px 8px #0007;
+  border-color: transparent;
+}
+body.dark-mode .tool-btn.add { background: #1976d2; color: #fff; }
+body.dark-mode .tool-btn.add.active { outline: 3px solid #083159; }
+body.dark-mode .tool-btn.danger { color: #ff6375; border-color: #ff6375; background: #0b1220; }
+body.dark-mode .tool-btn.danger.active { background: #ff1744; color: #fff; }
+
+/* Área de edição */
+body.dark-mode .blocos-container {
+  background: #111827;
+  border-color: #253142;
+}
+
+/* Paleta (+) */
+body.dark-mode .add-menu {
+  background: #0f172a;
+  border-color: #1976d2;
+  box-shadow: 0 8px 18px #0009;
+  color: #e5e7eb;
+}
+body.dark-mode .add-search {
+  background: #111827;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+}
+body.dark-mode .add-item {
+  background: #0b1220;
+  color: #e5e7eb;
+  border-color: #1976d2;
+  box-shadow: 0 1px 4px #0007;
+}
+body.dark-mode .add-item:hover { background: #0b1c33; }
+
+/* Blocos */
+body.dark-mode .bloco {
+  background: #1f2937;
+  color: #e5e7eb;
+  box-shadow: 0 2px 8px #0008;
+}
+body.dark-mode .bloco.dragging { box-shadow: 0 8px 24px #000a; }
+body.dark-mode .io-dot { border-color: #0b1220; }
+
+/* Menu (hambúrguer) */
+body.dark-mode .menu-icon { background: #90caf9; }
+body.dark-mode .menu-content {
+  background: #25477a !important;
+  color: #f4f4f9 !important;
+  border-color: #1e335c !important;
+}
+body.dark-mode .menu-link { box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+
+/* Ícone de edição no bloco */
+.bloco .edit-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid #cfcfcf;
+  background: #e9e9e9;
+  color: #555;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 1px 2px #0001;
+}
+.bloco .edit-btn:hover { background: #dddddd; }
+
+/* Dark mode do botão editar */
+body.dark-mode .bloco .edit-btn {
+  background: #2f2f2f;
+  border-color: #444;
+  color: #ddd;
+}
+body.dark-mode .bloco .edit-btn:hover { background: #3a3a3a; }
+
+/* Exibição da FT no estilo fração */
+.ft-display {
+  font-family: serif;
+  font-size: 1.1em;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ft-display .frac {
+  display: inline-grid;
+  grid-template-rows: auto auto auto;
+  justify-items: center;
+  align-items: center;
+  min-width: max-content;      /* largura = maior entre num e den */
+  white-space: nowrap;
+}
+.ft-display .num,
+.ft-display .den { padding: 0 6px; }
+.ft-display .bar {
+  width: 100%;
+  border-top: 1.6px solid currentColor;
+  margin: 2px 0;
+}
+
+/* Dark mode herda a cor atual (currentColor) */
