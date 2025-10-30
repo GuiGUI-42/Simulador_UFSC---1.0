@@ -214,7 +214,8 @@ fastify.post('/simular_blocos', async (request, reply) => {
         } else if (b.tipo === 'integrador') runtime.set(b.id, { kind: 'integrador', x: 0 });
         else if (b.tipo === 'atraso') runtime.set(b.id, { kind: 'atraso', z: 0 });
         else if (b.tipo === 'ganho') runtime.set(b.id, { kind: 'ganho', k: Number(b.k ?? 1) });
-        else if (b.tipo === 'soma') runtime.set(b.id, { kind: 'soma', k: Number(b.k ?? -1) });
+        else if (b.tipo === 'soma')
+          runtime.set(b.id, { kind: 'soma', signs: Array.isArray(b.signs) ? b.signs.map(v => (Number(v) === -1 ? -1 : 1)) : [] });
         else if (b.tipo === 'comparador') { // compatível com diagramas antigos
           const num = Array.isArray(b.num) ? b.num.map(Number) : [1];
           const den = Array.isArray(b.den) ? b.den.map(Number) : [1];
@@ -237,13 +238,13 @@ fastify.post('/simular_blocos', async (request, reply) => {
       }
       const toSaida = links.filter(l => l.to === 'saida').map(l => l.from);
 
-      // u do somador (2ª entrada ponderada por k)
+      // u do somador (cada entrada com sinal configurável)
       function sumInput(id, outputs) {
         const preds = incoming.get(id) || [];
         const r = runtime.get(id);
         let u = 0;
         for (let i = 0; i < preds.length; i++) {
-          const w = (i === 1) ? (r?.k ?? -1) : 1;
+          const w = (r?.signs && Number(r.signs[i]) === -1) ? -1 : 1;
           u += w * (outputs.get(preds[i]) ?? 0);
         }
         return u;

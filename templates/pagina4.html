@@ -8,8 +8,11 @@
     </script>
     <script src="https://cdn.plot.ly/plotly-2.20.0.min.js"></script>
     <link rel="stylesheet" href="/static/css/slider-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+    .font-courier { font-family: 'Courier New', Courier, monospace; }
+    .font-montserrat { font-family: 'Montserrat', 'Segoe UI', sans-serif; }
     .right-section {
         overflow: visible !important;
         border: 2px solid #ffffff;
@@ -172,8 +175,8 @@
     ">
         <!-- Seção Esquerda -->
         <div class="left-section" style="
-            flex: 0 0 30%;
-            width: 30%;
+            flex: 0 0 35%;
+            width: 35%;
             overflow: visible;
             padding: 1px 16px 16px 16px;
             box-sizing: border-box;
@@ -279,16 +282,24 @@
                 <button id="seta-grafico-closed" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
                 <h4 style="margin: 0 8px 0 0;">Resposta ao Degrau </h4>
             </div>
-            <div id="container-plot-closed" style="margin-bottom: 16px; display:none;">
-                <!-- Parâmetros da Perturbação dentro do container do gráfico -->
+            <div id="container-plot-closed" style="margin-bottom: 16px;">
+                <!-- Parâmetros da Perturbação -->
                 <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 8px;">
                     <span style="font-weight: bold; color: #1976d2;">Parâmetros da Perturbação:</span>
                     <label for="input-t-fechada-grafico">Tempo:</label>
                     <input id="input-t-fechada-grafico" type="number" min="0" max="50" step="0.1" value="20" style="width: 60px;">
                     <label for="input-a-fechada-grafico">Amplitude:</label>
-                    <input id="input-a-fechada-grafico" type="number" min="-2" max="2" step="0.01" value="0" style="width: 60px;">
-                    <!-- NOVO SLIDER DE AMPLITUDE -->
-                    <input type="range" id="slider-a-fechada-grafico" min="-2" max="2" step="0.01" value="0" style="width: 180px;">
+                    <input id="input-a-fechada-grafico" type="number" min="-5" max="5" step="0.01" value="0" style="width: 60px;">
+                    <input type="range" id="slider-a-fechada-grafico" min="-5" max="5" step="0.01" value="0" style="width: 180px;">
+                </div>
+                <!-- Checkboxes para mostrar/ocultar todas as curvas -->
+                <div style="display:flex; gap:16px; align-items:center; margin: 6px 0; flex-wrap: wrap;">
+                    <strong>Mostrar curvas:</strong>
+                    <label><input type="checkbox" id="cb-base-sem" checked> <span class="font-montserrat">Malha Fechada</span></label>
+                    <label><input type="checkbox" id="cb-base-open" checked> <span class="font-montserrat">Malha Aberta</span></label>
+                    <label><input type="checkbox" id="cb-base-com"> <span class="font-montserrat">Com Perturbação</span></label>
+                    <label><input type="checkbox" id="cb-closed-error"><span class="font-montserrat"> \( \dfrac{E}{R} \)</span></label>
+                    <label><input type="checkbox" id="cb-closed-perturb"><span class="font-montserrat"> \( \dfrac{Y}{Q} \)</span></label>
                 </div>
                 <div id="plot_closed"></div>
             </div>
@@ -299,25 +310,17 @@
                 <h4 style="margin: 0 8px 0 0;">Diagrama de Polos e Zeros</h4>
                 <!-- Novo seletor de tipo de diagrama -->
                 <select id="tipo-diagrama-pz" style="margin-left: 8px;">
-                    <option value="planta">Planta</option>
-                    <option value="controlador">Controlador</option>
                     <option value="malha_fechada" selected>Malha Fechada</option>
                     <option value="malha_aberta">Malha Aberta</option>
+                    <option value="erro">Erro E/R</option>
+                    <option value="perturbacao">Perturbação Y/Q</option>
                 </select>
             </div>
             <div id="container-plot-pz-closed" style="margin-bottom: 16px; display:none;">
                 <div id="plot_pz_closed"></div>
             </div>
 
-            <!-- Resposta ao Degrau (Malha Aberta) -->
-            <div id="malha-aberta-container">
-                <div style="display: flex; align-items: center; margin-bottom: 4px; margin-top: 16px;">
-                    <button id="seta-grafico-malha-aberta" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
-                    <h4 style="margin: 0 8px 0 0;">Resposta ao Degrau (Malha Aberta)</h4>
-                </div>
-                <div id="plot_open" style="display:none;"></div>
-            </div>
-
+        
             <!-- Diagrama de Bode -->
             <div style="display: flex; align-items: center; margin-bottom: 4px; margin-top: 16px;">
                 <button id="seta-grafico-bode" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
@@ -374,8 +377,8 @@ function renderInputs() {
         const row = document.createElement('div');
         row.className = 'input-row';
         row.innerHTML = `
-            <input type="range" class="param-slider" id="polo-planta-slider-${idx}" min="-10" max="1" step="0.01" value="${val}">
-            <input type="number" id="polo-planta-input-${idx}" step="0.01" min="-10" max="1" value="${val}">
+            <input type="range" class="param-slider" id="polo-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+            <input type="number" id="polo-planta-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
             <button type="button" class="remove-btn" id="remove-planta-polo-${idx}" title="Remover Polo">&times;</button>
         `;
         polosList.appendChild(row);
@@ -438,8 +441,8 @@ function renderInputs() {
         const row = document.createElement('div');
         row.className = 'input-row';
         row.innerHTML = `
-            <input type="range" class="param-slider" id="polo-controlador-slider-${idx}" min="-10" max="1" step="0.01" value="${val}">
-            <input type="number" id="polo-controlador-input-${idx}" step="0.01" min="-10" max="1" value="${val}">
+            <input type="range" class="param-slider" id="polo-controlador-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+            <input type="number" id="polo-controlador-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
             <button type="button" class="remove-btn" id="remove-controlador-polo-${idx}" title="Remover Polo">&times;</button>
         `;
         polosListC.appendChild(row);
@@ -532,6 +535,39 @@ function setupBtns() {
         inputAmp.value = this.value;
         atualizarTudoDebounced();
     };
+
+    // Mudanças nos checkboxes atualizam o 1º gráfico
+    const cbSem = document.getElementById('cb-base-sem');
+    const cbCom = document.getElementById('cb-base-com');
+    const cbOpen = document.getElementById('cb-base-open');
+    const cbErr = document.getElementById('cb-closed-error');
+    const cbQ   = document.getElementById('cb-closed-perturb');
+
+    [cbSem, cbCom, cbOpen, cbErr, cbQ].forEach(el => el && (el.onchange = atualizarTudoDebounced));
+}
+
+// Helpers: contar zeros/polos em 0 e corrigir \frac{num}{den}
+function countZeroAtZero(arr, tol = 1e-8) {
+    if (!Array.isArray(arr)) return 0;
+    return arr.filter(v => Math.abs(parseFloat(v)) < tol).length;
+}
+function effectiveZeroPoles(arr, tol = 1e-8) {
+    // Se a lista de polos estiver vazia, assuma 1 polo em 0 => den = s
+    if (!Array.isArray(arr) || arr.length === 0) return 1;
+    return countZeroAtZero(arr, tol);
+}
+function fixFracWithS(latex, kZeros, kPoles, varName = 's') {
+    if (!latex) return latex;
+    const sZeros = kZeros > 1 ? `${varName}^${kZeros}` : varName;
+    const sPoles = kPoles > 1 ? `${varName}^${kPolos}` : varName;
+    // Corrige todos os \frac{num}{den} do LaTeX
+    return latex.replace(/\\frac\{\s*([^}]*)\s*\}\{\s*([^}]*)\s*\}/g, (m, num, den) => {
+        let newNum = num.trim();
+        let newDen = den.trim();
+        if (kZeros > 0 && /^1\s*$/.test(newNum)) newNum = sZeros;
+        if (kPoles > 0 && /^1\s*$/.test(newDen)) newDen = sPoles;
+        return `\\frac{${newNum}}{${newDen}}`;
+    });
 }
 
 async function atualizarTudo() {
@@ -569,24 +605,54 @@ async function atualizarTudo() {
     });
     const json = await res.json();
 
-    document.getElementById("ft-planta-polinomial").innerHTML = json.latex_planta_polinomial || "Erro ao carregar forma polinomial";
-    document.getElementById("ft-planta-fatorada").innerHTML = json.latex_planta_fatorada || "Erro ao carregar forma fatorada";
-    document.getElementById("ft-planta-parcial").innerHTML = json.latex_planta_parcial || "Erro ao carregar fração parcial";
+    // Quantidades de zeros/polos em s=0
+    const kZerosPlanta = countZeroAtZero(zerosPlanta);
+    const kPolosPlanta = effectiveZeroPoles(polosPlanta);
+    const kZerosCtrl   = countZeroAtZero(zerosControlador);
+    const kPolosCtrl   = effectiveZeroPoles(polosControlador);
 
-    document.getElementById("ft-controlador-polinomial").innerHTML = json.latex_controlador_polinomial || "Erro ao carregar forma polinomial";
-    document.getElementById("ft-controlador-fatorada").innerHTML = json.latex_controlador_fatorada || "Erro ao carregar forma fatorada";
-    document.getElementById("ft-controlador-parcial").innerHTML = json.latex_controlador_parcial || "Erro ao carregar fração parcial";
+    // Corrigir LaTeX usando as quantidades acima
+    const lp_polin = fixFracWithS(json.latex_planta_polinomial, kZerosPlanta, kPolosPlanta, 's');
+    const lp_fator = fixFracWithS(json.latex_planta_fatorada,   kZerosPlanta, kPolosPlanta, 's');
+    const lp_parc  = fixFracWithS(json.latex_planta_parcial,    kZerosPlanta, kPolosPlanta, 's');
+
+    const lc_polin = fixFracWithS(json.latex_controlador_polinomial, kZerosCtrl, kPolosCtrl, 's');
+    const lc_fator = fixFracWithS(json.latex_controlador_fatorada,   kZerosCtrl, kPolosCtrl, 's');
+    const lc_parc  = fixFracWithS(json.latex_controlador_parcial,    kZerosCtrl, kPolosCtrl, 's');
+
+    document.getElementById("ft-planta-polinomial").innerHTML = lp_polin || "Erro ao carregar forma polinomial";
+    document.getElementById("ft-planta-fatorada").innerHTML   = lp_fator || "Erro ao carregar forma fatorada";
+    document.getElementById("ft-planta-parcial").innerHTML    = lp_parc  || "Erro ao carregar fração parcial";
+
+    document.getElementById("ft-controlador-polinomial").innerHTML = lc_polin || "Erro ao carregar forma polinomial";
+    document.getElementById("ft-controlador-fatorada").innerHTML   = lc_fator || "Erro ao carregar forma fatorada";
+    document.getElementById("ft-controlador-parcial").innerHTML    = lc_parc  || "Erro ao carregar fração parcial";
 
     if (window.MathJax) MathJax.typesetPromise();
 
-    // Apenas atualize os gráficos que são exclusivos deste endpoint
-    Plotly.newPlot('plot_open', json.plot_open_data.data, json.plot_open_data.layout);
-    Plotly.newPlot('plot_closed', json.plot_closed_data.data, json.plot_closed_data.layout);
+    // ÚNICO gráfico de degrau: montar conforme checkboxes
+    const tracesClosed = [];
+    const base = (json.plot_closed_data && json.plot_closed_data.data) ? json.plot_closed_data.data : [];
 
-    // Removido: Plotly.newPlot('plot_pz_closed', ...) e Plotly.newPlot('plot_bode', ...)
-    // Eles são atualizados separadamente nas funções abaixo
+    if (document.getElementById('cb-base-sem')?.checked && base[0]) {
+        tracesClosed.push(base[0]); // Sem Perturbação
+    }
+    if (document.getElementById('cb-base-com')?.checked && base[1]) {
+        tracesClosed.push(base[1]); // Com Perturbação (laranja tracejada vem do backend)
+    }
+    if (document.getElementById('cb-base-open')?.checked && base[2]) {
+        tracesClosed.push(base[2]); // Malha Aberta
+    }
+    if (document.getElementById('cb-closed-error')?.checked && json.error_closed_data) {
+        tracesClosed.push(json.error_closed_data.data[0]); // Erro E/R (preto)
+    }
+    if (document.getElementById('cb-closed-perturb')?.checked && json.perturb_closed_data) {
+        tracesClosed.push(json.perturb_closed_data.data[0]); // Y/Q (roxo tracejado)
+    }
 
-    // Atualize os gráficos restantes
+    Plotly.newPlot('plot_closed', tracesClosed, json.plot_closed_data.layout);
+
+    // Atualize os demais gráficos
     await atualizarPZClosed();
     await atualizarBode();
     await atualizarNyquist();
@@ -629,7 +695,6 @@ function toggleSection(btnId, sectionId) {
 window.addEventListener('DOMContentLoaded', function() {
     toggleSection('seta-grafico-closed', 'container-plot-closed');
     toggleSection('seta-grafico-pz-closed', 'container-plot-pz-closed');
-    toggleSection('seta-grafico-malha-aberta', 'plot_open');
     toggleSection('seta-grafico-bode', 'container-plot-bode');
     toggleSection('seta-grafico-nyquist', 'nyquist-img-container');
 });

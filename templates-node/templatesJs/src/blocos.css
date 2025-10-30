@@ -115,6 +115,7 @@ body { background: #f3f3f7; font-family: sans-serif; margin: 0; }
   position: absolute;
   cursor: grab;
   user-select: none;
+  zoom:0.8;
   transition: box-shadow 0.2s;
 }
 .bloco.dragging {
@@ -315,4 +316,73 @@ body.dark-mode .bloco .edit-btn:hover { background: #3a3a3a; }
   margin: 2px 0;
 }
 
-/* Dark mode herda a cor atual (currentColor) */
+/* Ponto de entrada do somador com sinal visível */
+.sum-input-dot {
+  width: 20px;
+  height: 20px;
+  left: -12px;                 /* compensa o diâmetro maior */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+}
+.sum-input-dot .io-sign {
+  color: #f99f17ff;            /* mesma cor do texto da Saída */
+  line-height: 1;
+  pointer-events: none;        /* não bloquear o clique de conexão */
+}
+
+/* Símbolo do somador (conteúdo do bloco) */
+.sum-symbol {
+  font-family: serif;
+  font-weight: 700;
+  font-size: 1.8em;
+  line-height: 1;
+  user-select: none;
+
+  /* centralização total dentro do bloco */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;    /* centro vertical */
+  justify-content: center;/* centro horizontal */
+  text-align: center;
+}
+
+/* Estilo específico do bloco Somador */
+.bloco.bloco-soma {
+  min-width: 0 !important; 
+  zoom: 0.7;  /* permite largura < 150px */
+  padding: 2px ;         /* ajuste opcional do espaço interno */
+}
+
+/* Área central de conteúdo de qualquer bloco */
+.bloco-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;     /* centro vertical */
+  justify-content: center; /* centro horizontal */
+  text-align: center;
+}
+
+/* Ícone de degrau (step) */
+.step-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-svg { width: 90%; height: 70%; }
+.step-axis { stroke: #4e4a59; stroke-width: 2; }
+.step-curve { stroke: #1976d2; stroke-width: 3; fill: none; }
+
+/* Valor da constante (somente o número) */
+.const-value {
+  font-family: serif;
+  font-weight: 700;
+  font-size: 1.4em;
+  line-height: 1;
+}

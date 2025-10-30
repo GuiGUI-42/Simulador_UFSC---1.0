@@ -415,10 +415,16 @@ async function atualizar() {
     });
     const result = await res.json();
 
-    document.getElementById('latex_planta_polinomial').innerHTML = result.latex_planta_polinomial || "Erro ao carregar forma polinomial";
-document.getElementById('latex_planta_fatorada').innerHTML = result.latex_planta_fatorada || "Erro ao carregar forma fatorada";
-document.getElementById('latex_planta_parcial').innerHTML = result.latex_planta_parcial || "Erro ao carregar fração parcial";
-if (window.MathJax) MathJax.typesetPromise();
+    // Helpers (mesmos que em pagina4)
+    function countZeroPoles(arr, tol = 1e-8) { if (!Array.isArray(arr)) return 0; return arr.filter(p => Math.abs(p) < tol).length; }
+    function effectiveKZeroPoles(arr, tol = 1e-8) { if (!Array.isArray(arr) || arr.length === 0) return 1; return countZeroPoles(arr, tol); }
+    function fixDenWithS(latex, k, varName = 's') { if (!latex || k <= 0) return latex; const sPart = k === 1 ? varName : `${varName}^${k}`; return latex.replace(/\}\{\s*1\s*\}/g, `}{${sPart}}`); }
+
+    const kP0 = effectiveKZeroPoles(polosPlanta);
+    document.getElementById('latex_planta_polinomial').innerHTML = fixDenWithS(result.latex_planta_polinomial, kP0, 's') || "";
+    document.getElementById('latex_planta_fatorada').innerHTML   = fixDenWithS(result.latex_planta_fatorada, kP0, 's') || "";
+    document.getElementById('latex_planta_parcial').innerHTML    = fixDenWithS(result.latex_planta_parcial, kP0, 's') || "";
+    if (window.MathJax) MathJax.typesetPromise();
 
         Plotly.react('plot_pz', result.plot_pz_data.data, {
             ...result.plot_pz_data.layout,

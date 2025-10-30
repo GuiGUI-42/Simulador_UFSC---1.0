@@ -2,6 +2,31 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import Plot from "react-plotly.js";
 import "./blocos.css";
 
+// Dimensões por tipo de bloco (default e soma)
+const BLOCO_DIMS = {
+  default: { width: 10, height: 50 },
+  soma:    { width: 80, height: 70 } // largura menor, altura maior
+};
+function getBlocoDims(bloco) {
+  // FT: base 150; +50 por coeficiente acima de 2 (usa o maior entre num e den)
+  if (bloco?.tipo === "ft") {
+    const numLen = Array.isArray(bloco?.num) ? bloco.num.length : 0;
+    const denLen = Array.isArray(bloco?.den) ? bloco.den.length : 0;
+    const maxLen = Math.max(numLen, denLen);
+    const extra = Math.max(0, maxLen - 2);
+    return { width: 160 + extra * 50, height: BLOCO_DIMS.default.height };
+  }
+
+  // Somador: mantém padrão para 1–2 entradas; com 3 entradas altura = 90
+  if (bloco?.tipo === "soma") {
+    const n = Math.min(3, Math.max(1, bloco?.nEntradas ?? 2));
+    const h = n >= 3 ? 90 : BLOCO_DIMS.soma.height;
+    return { width: BLOCO_DIMS.soma.width, height: h };
+  }
+
+  return BLOCO_DIMS.default;
+}
+
 // Menu idêntico ao das páginas HTML (pagina2.html)
 function MenuHtmlLike() {
   const [open, setOpen] = useState(false);
@@ -152,39 +177,34 @@ function prettyPoly(coeffs, varName = "s", decimals = 2) {
 
 // Componentes UI
 function Bloco({ bloco, onClick, onDragStart, dragging, onInputDotDown, onOutputDotDown, isInputActive, isOutputActive, deleteMode, onDelete }) {
-  const somaEntradas = Math.min(4, Math.max(1, bloco?.nEntradas ?? (bloco.tipo === "soma" ? 2 : 1)));
+  // Limite máx 3 entradas
+  const somaEntradas = Math.min(3, Math.max(1, bloco?.nEntradas ?? (bloco.tipo === "soma" ? 2 : 1)));
+  const dims = getBlocoDims(bloco);
 
   return (
     <div
-      className={"bloco" + (dragging ? " dragging" : "")}
-      style={{ left: bloco.x, top: bloco.y, zIndex: dragging ? 10 : 1, position: "absolute" }}
+      className={"bloco" + (bloco.tipo === "soma" ? " bloco-soma" : "") + (dragging ? " dragging" : "")}
+      style={{ left: bloco.x, top: bloco.y, zIndex: dragging ? 10 : 1, position: "absolute", width: dims.width, height: dims.height }}
       onMouseDown={e => {
-        // se estiver em modo deletar, apagar ao clicar em qualquer lugar do bloco (inclusive antes de drag)
         if (deleteMode) {
           e.preventDefault();
           e.stopPropagation();
           onDelete(bloco.id);
           return;
         }
-        // arrasta o bloco normalmente
         onDragStart(e, bloco.id);
       }}
     >
-      {/* botão editar (canto superior direito) */}
       <button
         className="edit-btn"
         title={deleteMode ? "Remover bloco" : "Editar bloco"}
         onMouseDown={e => e.stopPropagation()}
         onClick={e => {
           e.stopPropagation();
-          if (deleteMode) {
-            onDelete(bloco.id);
-            return;
-          }
+          if (deleteMode) { onDelete(bloco.id); return; }
           onClick();
         }}
       >
-        {/* ícone lápis */}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/>
           <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
@@ -195,14 +215,18 @@ function Bloco({ bloco, onClick, onDragStart, dragging, onInputDotDown, onOutput
       {bloco.tipo === "soma"
         ? Array.from({ length: somaEntradas }).map((_, i) => {
             const topPct = ((i + 1) / (somaEntradas + 1)) * 100;
+            const sign = (Array.isArray(bloco.signs) && Number(bloco.signs[i]) === -1) ? "-" : "+";
             return (
               <div
                 key={`in-${i}`}
-                className={"io-dot input" + (isInputActive ? " active" : "")}
-                title={`Entrada ${i + 1}`}
+                className={"io-dot input sum-input-dot" + (isInputActive ? " active" : "")}
+                title={`Entrada ${i + 1} (${sign})`}
                 style={{ top: `${topPct}%` }}
                 onMouseDown={e => { e.stopPropagation(); onInputDotDown(bloco.id, e); }}
-              />
+                aria-label={`Entrada ${i + 1} (${sign})`}
+              >
+                <span className="io-sign">{sign}</span>
+              </div>
             );
           })
         : (
@@ -221,51 +245,61 @@ function Bloco({ bloco, onClick, onDragStart, dragging, onInputDotDown, onOutput
       />
 
       {/* Conteúdo do bloco */}
-      {bloco.tipo === "ft" ? (
-        <div className="ft-display">
-          <i>G(s)</i>
-          <span>&nbsp;=&nbsp;</span>
-          <span className="frac" aria-label="G(s) em fração">
-            <span className="num">( {prettyPoly(bloco.num)} )</span>
-            <span className="bar"></span>
-            <span className="den">( {prettyPoly(bloco.den)} )</span>
-          </span>
-        </div>
-      ) : (
-        <>
-          <div
-            className="bloco-title"
-            style={{ fontWeight: "bold", marginBottom: 8, cursor: "default" }}
-            onClick={e => { e.stopPropagation(); /* título não abre mais */ }}
-          >
-            Bloco #{bloco.id}
+      <div className="bloco-content">
+        {bloco.tipo === "ft" ? (
+          <div className="ft-display">
+            <i>G(s)</i>
+            <span>&nbsp;=&nbsp;</span>
+            <span className="frac" aria-label="G(s) em fração">
+              <span className="num">( {prettyPoly(bloco.num)} )</span>
+              <span className="bar"></span>
+              <span className="den">( {prettyPoly(bloco.den)} )</span>
+            </span>
           </div>
-          <div style={{ fontFamily: "monospace", marginTop: 8 }}>
-            {bloco.tipo === "step" ? (
-              <span style={{ fontFamily: "serif" }}>Degrau: A=<b>{bloco.amp ?? 1}</b>, t0=<b>{bloco.t0 ?? 0}</b>s</span>
-            ) : bloco.tipo === "constante" ? (
-              <span style={{ fontFamily: "serif" }}>Constante: <b>{bloco.valor ?? 1}</b></span>
-            ) : bloco.tipo === "ganho" ? (
-              <span style={{ fontFamily: "serif" }}>Ganho: <b>{bloco.k ?? 1}</b></span>
-            ) : bloco.tipo === "soma" ? (
-              <span style={{ fontFamily: "serif" }}>
-                Somador: <b>Σ</b> (entradas: <b>{somaEntradas}</b>, k·2ª entrada: <b>{bloco.k ?? -1}</b>)
-              </span>
-            ) : bloco.tipo === "comparador" ? (
-              <div style={{ fontFamily: "serif" }}>
-                <div>Comparador Σ (k·fb): <b>{bloco.k ?? -1}</b></div>
-                {(bloco?.den?.length ?? 0) > 1 && (
-                  <div style={{ marginTop: 4 }}>
-                    G(s) = (<span>{latexPoly(bloco.num)}</span>) / (<span>{latexPoly(bloco.den)}</span>)
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>G(s) = <span style={{ fontFamily: "serif" }}>{`(${latexPoly(bloco.num)}) / (${latexPoly(bloco.den)})`}</span></>
-            )}
+        ) : bloco.tipo === "soma" ? (
+          <div className="sum-symbol" aria-label="Somador">Σ</div>
+        ) : bloco.tipo === "step" ? (
+          <div className="step-icon" aria-label="Sinal Degrau">
+            <svg viewBox="0 0 100 60" className="step-svg" role="img" aria-label="Curva de degrau">
+              {/* eixos */}
+              <line x1="5" y1="50" x2="95" y2="50" className="step-axis" />
+              <line x1="5" y1="55" x2="5"  y2="5"  className="step-axis" />
+              {/* degrau */}
+              <path d="M5 50 L45 50 L45 15 L95 15" className="step-curve" />
+            </svg>
           </div>
-        </>
-      )}
+        ) : bloco.tipo === "constante" ? (
+          <div className="const-value" aria-label="Valor constante">
+            {Number.isFinite(+bloco.valor) ? bloco.valor : 1}
+          </div>
+        ) : (
+          <>
+            <div
+              className="bloco-title"
+              style={{ fontWeight: "bold", marginBottom: 8, cursor: "default" }}
+              onClick={e => { e.stopPropagation(); }}
+            >
+              Bloco #{bloco.id}
+            </div>
+            <div style={{ fontFamily: "monospace", marginTop: 8, textAlign: "center" }}>
+              {bloco.tipo === "ganho" ? (
+                <span style={{ fontFamily: "serif" }}>Ganho: <b>{bloco.k ?? 1}</b></span>
+              ) : bloco.tipo === "comparador" ? (
+                <div style={{ fontFamily: "serif" }}>
+                  <div>Comparador Σ (k·fb): <b>{bloco.k ?? -1}</b></div>
+                  {(bloco?.den?.length ?? 0) > 1 && (
+                    <div style={{ marginTop: 4 }}>
+                      G(s) = (<span>{latexPoly(bloco.num)}</span>) / (<span>{latexPoly(bloco.den)}</span>)
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>G(s) = <span style={{ fontFamily: "serif" }}>{`(${latexPoly(bloco.num)}) / (${latexPoly(bloco.den)})`}</span></>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -446,6 +480,13 @@ function ConfigModal({ bloco, onClose, onSave }) {
   const [amp, setAmp] = useState(bloco.amp ?? 1);
   const [t0, setT0] = useState(bloco.t0 ?? 0);
   const [nEntradas, setNEntradas] = useState(bloco.nEntradas ?? (bloco.tipo === "soma" ? 2 : 1));
+  // Sinais do somador (+1 ou -1) – padrão +
+  const [signs, setSigns] = useState(() => {
+    const n = Math.min(3, Math.max(1, bloco.nEntradas ?? (bloco.tipo === "soma" ? 2 : 1)));
+    const base = Array.isArray(bloco.signs) ? bloco.signs.slice(0, n).map(v => (Number(v) === -1 ? -1 : 1)) : [];
+    while (base.length < n) base.push(1);
+    return base;
+  });
 
   const saveFT = () => {
     const numArr = String(num).split(",").map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
@@ -466,14 +507,13 @@ function ConfigModal({ bloco, onClose, onSave }) {
     onSave({ ...bloco, k: kv });
     onClose();
   };
-// Novo: salvar Somador (k e número de entradas)
+// Novo: salvar Somador (n entradas até 3 e sinais +/-)
   const saveSum = () => {
-    const kv = parseFloat(k);
     let n = parseInt(nEntradas, 10);
-    if (!Number.isFinite(kv)) { alert("Ganho inválido!"); return; }
     if (!Number.isFinite(n)) n = 2;
-    n = Math.min(4, Math.max(1, n));
-    onSave({ ...bloco, k: kv, nEntradas: n });
+    n = Math.min(3, Math.max(1, n));
+    const s = (Array.from({ length: n }).map((_, i) => (Number(signs[i]) === -1 ? -1 : 1)));
+    onSave({ ...bloco, nEntradas: n, signs: s });
     onClose();
   };
 
@@ -527,17 +567,49 @@ function ConfigModal({ bloco, onClose, onSave }) {
           </>
         ) : bloco.tipo === "soma" ? (
           <>
-            <label>k aplicado à 2ª entrada:<br />
-              <input value={k} onChange={e => setK(e.target.value)} style={{ width: "100%" }} />
-            </label>
-            <div style={{ marginTop: 12 }}>
-              <label>Nº de entradas (1 a 4):<br />
-                <input type="number" min="1" max="4" value={nEntradas} onChange={e => setNEntradas(e.target.value)} style={{ width: "100%" }} />
+            <div>
+              <label>Nº de entradas (1 a 3):<br />
+                <input
+                  type="number"
+                  min="1" max="3"
+                  value={nEntradas}
+                  onChange={e => {
+                    const n = Math.min(3, Math.max(1, Number(e.target.value) || 1));
+                    setNEntradas(n);
+                    setSigns(prev => {
+                      const out = (prev || []).slice(0, n);
+                      while (out.length < n) out.push(1);
+                      return out;
+                    });
+                  }}
+                  style={{ width: "100%" }}
+                />
               </label>
             </div>
-            <div style={{ color: "#666", fontSize: 12, marginTop: 4 }}>
-              u = in1 + k·in2 + in3 + in4 + ...
+
+            {/* Seleção de operação por entrada */}
+            <div style={{ marginTop: 12 }}>
+              {Array.from({ length: Math.min(3, Math.max(1, nEntradas)) }).map((_, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                  <span>Entrada {i + 1}:</span>
+                  <select
+                    value={Number(signs[i]) === -1 ? -1 : 1}
+                    onChange={e => {
+                      const v = Number(e.target.value);
+                      setSigns(prev => {
+                        const arr = prev.slice();
+                        arr[i] = (v === -1 ? -1 : 1);
+                        return arr;
+                      });
+                    }}
+                  >
+                    <option value={1}>+</option>
+                    <option value={-1}>-</option>
+                  </select>
+                </div>
+              ))}
             </div>
+
             <button style={{ marginTop: 16 }} onClick={saveSum}>Salvar</button>
           </>
         ) : bloco.tipo === "ganho" ? (
@@ -587,8 +659,8 @@ function ConfigModal({ bloco, onClose, onSave }) {
 export default function Blocos() {
   const containerWidth = 1400;
   const containerHeight = 800;
-  const blocoWidth = 240;
-  const blocoHeight = 80;
+  // const blocoWidth = 240;  // substituído por getBlocoDims
+  // const blocoHeight = 80;  // substituído por getBlocoDims
   const saidaPos = { x: 1280, y: 350 };
 
   // Inicia vazio (sem bloco inicial)
@@ -629,7 +701,7 @@ export default function Blocos() {
       : tipo === "ganho"
         ? { id: prev.length ? Math.max(...prev.map(b => b.id)) + 1 : 1, tipo: "ganho", k: 1, num: [1], den: [1], x: 100 + 40 * prev.length, y: 100 + 40 * prev.length }
       : tipo === "soma"
-        ? { id: prev.length ? Math.max(...prev.map(b => b.id)) + 1 : 1, tipo: "soma", k: -1, nEntradas: 2, num: [1], den: [1], x: 100 + 40 * prev.length, y: 100 + 40 * prev.length }
+        ? { id: prev.length ? Math.max(...prev.map(b => b.id)) + 1 : 1, tipo: "soma", nEntradas: 2, signs: [1, 1], num: [1], den: [1], x: 100 + 40 * prev.length, y: 100 + 40 * prev.length }
       : { id: prev.length ? Math.max(...prev.map(b => b.id)) + 1 : 1, tipo: "ft", num: [1], den: [1, 1], x: 100 + 40 * prev.length, y: 100 + 40 * prev.length }
     ]);
     setShowAddMenu(false);
@@ -651,10 +723,11 @@ export default function Blocos() {
         setBlocos(prev =>
           prev.map(b => {
             if (b.id !== draggingId) return b;
+            const dims = getBlocoDims(b);
             let newX = e.clientX - dragOffset.x;
             let newY = e.clientY - dragOffset.y;
-            newX = Math.max(0, Math.min(containerWidth - blocoWidth, newX));
-            newY = Math.max(0, Math.min(containerHeight - blocoHeight, newY));
+            newX = Math.max(0, Math.min(containerWidth - dims.width, newX));
+            newY = Math.max(0, Math.min(containerHeight - dims.height, newY));
             return { ...b, x: newX, y: newY };
           })
         );
@@ -675,8 +748,9 @@ export default function Blocos() {
   }, [draggingId, dragOffset]);
 
   function getDotPos(bloco, type) {
-    const x = bloco.x + (type === "input" ? 0 : blocoWidth);
-    const y = bloco.y + blocoHeight / 2;
+    const { width, height } = getBlocoDims(bloco);
+    const x = bloco.x + (type === "input" ? 0 : width);
+    const y = bloco.y + height / 2;
     return { x, y };
   }
   function onOutputDotDown(blocoId, e) {
@@ -852,9 +926,9 @@ export default function Blocos() {
                 {[
                   { key: "ft", label: "Função de Transferência", color: "#1976d2" },
                   { key: "step", label: "Entrada Degrau (Step)", color: "#388e3c" },
-                  { key: "soma", label: "Somador (Σ, k na 2ª)", color: "#7b1fa2" },
-                  { key: "ganho", label: "Ganho (k)", color: "#e65100" },
-                  { key: "constante", label: "Entrada Constante (DC)", color: "#455a64" },
+                  { key: "soma", label: "Somador", color: "#7b1fa2" },
+                  { key: "ganho", label: "Ganho (K)", color: "#e65100" },
+                  { key: "constante", label: "Constante", color: "#455a64" },
                 ]
                   .filter(it => it.label.toLowerCase().includes(addFilter.toLowerCase()))
                   .map(it => (
