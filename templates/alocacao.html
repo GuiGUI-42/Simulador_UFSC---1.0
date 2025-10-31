@@ -30,48 +30,23 @@
 
         .main-flex { display:flex; gap:24px; padding:16px; align-items:stretch; }
         .side-col, .center-col { border: 2px solid #ffffff; border-radius: 10px; background: #fff; padding: 16px; }
-        .side-col { width: 360px; flex: 0 0 auto; }
+        .side-col { width: 450px; flex: 0 0 auto;max-width: 700px; }
         .center-col { flex: 1 1 auto; }
 
         .section-title { font-size:1.1em; font-weight:bold; color:#1976d2; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
 
-        /* Ícone informativo: "i" centralizado em qualquer contexto (inclusive modais) */
+        /* Ícone informativo */
         .info-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            margin-left: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            position: relative;
-            text-align: center;
-            border-radius: 50%;
-            border: 1px solid #1976d2;
-            color: #ffffff;
-            line-height: 18px; /* garante centrado vertical mesmo sem flex */
-            vertical-align: middle;
-            user-select: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 18px; height: 18px; margin-left: 8px; font-size: 12px; font-weight: 700;
+            cursor: pointer; position: relative; text-align: center; border-radius: 50%;
+            border: 1px solid #1976d2; color: #ffffff; line-height: 18px; vertical-align: middle; user-select: none;
         }
-    
         .info-icon:hover .info-tooltip { display:block; }
         .info-tooltip {
-            display:none;
-            position:absolute;
-            top:22px;
-            left:50%;
-            transform:translateX(-50%);
-            background:#fff;
-            color:#333;
-            padding:8px 12px;
-            border-radius:8px;
-            box-shadow:0 4px 12px rgba(0,0,0,0.2);
-            z-index:100;
-            width:400px;
-            max-width:400px;
-            font-size:1em;
+            display:none; position:absolute; top:22px; left:50%; transform:translateX(-50%);
+            background:#fff; color:#333; padding:8px 12px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2);
+            z-index:100; width:400px; max-width:400px; font-size:1em;
         }
 
         .param-list { margin-bottom:12px; }
@@ -93,8 +68,8 @@
         body.dark-mode .section-title { color:#fff !important; }
 
         /* Tamanho do MathJax */
-        #latex-controlador mjx-container { font-size: 175% !important; line-height: 1.2; }
-        #latex-planta mjx-container { font-size: 175% !important; line-height: 1.2; }
+        #latex-controlador mjx-container { font-size: 160% !important; line-height: 1.2; }
+        #latex-planta mjx-container { font-size: 160% !important; line-height: 1.2; }
         #poly-caracteristico mjx-container { font-size: 180% !important; line-height: 1.2; display:inline-block; }
         #poly-desejado-latex mjx-container { font-size: 150% !important; }
         #pd-value, #pd-value mjx-container { font-size: 130% !important; line-height: 1.2; }
@@ -369,8 +344,8 @@
     </div>
 
     <script>
-        // Estado
-        let polos_planta = [-0.01];
+        // Estado — polos com parte imaginária opcional
+        let polos_planta = [{ real: -0.01, imag: 0, useImag: false }];
         let zeros_planta = [];
         let polos_controlador = [];
         let zeros_controlador = [];
@@ -380,30 +355,95 @@
         let polos_filtro = [];
         let ganho_filtro = 1.0;
 
+        // Converte para backend: objetos -> números ou pares conjugados [re, im]
+        function convertToBackend(arr) {
+            const out = [];
+            for (const p of arr) {
+                if (p && typeof p === 'object' && 'real' in p) {
+                    const re = Number(p.real) || 0;
+                    const im = Number(p.imag) || 0;
+                    const useImag = !!p.useImag;
+                    if (useImag && Math.abs(im) > 1e-12) out.push([re, im], [re, -im]);
+                    else out.push(re);
+                } else {
+                    out.push(Number(p) || 0);
+                }
+            }
+            return out;
+        }
+
         // Debounce
         function debounce(func, wait) { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>func.apply(this,a), wait); }; }
         const updateAllDebounced = debounce(updateAll, 30);
 
-        // Render parâmetros
+        // Render polos (com parte Im opcional)
+        function renderPolosList(listId, arr, type) {
+            const container = document.getElementById(listId);
+            container.innerHTML = '';
+            const min = -10, max = 10, step = 0.01;
+            arr.forEach((val, idx) => {
+                if (!(val && typeof val === 'object' && 'real' in val)) {
+                    arr[idx] = { real: Number(val) || 0, imag: 0, useImag: false };
+                    val = arr[idx];
+                }
+                const real = Number(val.real) || 0;
+                const imag = Number(val.imag) || 0;
+                const checked = val.useImag ? 'checked' : '';
+                const row = document.createElement('div');
+                row.className = 'param-row';
+                row.innerHTML = `
+                    <input type="range" class="param-slider" id="${type}-slider-${idx}" min="${min}" max="${max}" step="${step}" value="${real}">
+                    <input type="number" class="input-inline" id="${type}-real-${idx}" step="${step}" value="${real}">
+                    <label>
+                        <input type="checkbox" id="${type}-imag-check-${idx}" ${checked} style="accent-color:#2196f3;">
+                        <i>Im</i>
+                    </label>
+                    <input type="number" class="input-inline" id="${type}-imag-${idx}" step="${step}" value="${imag}" style="display:${val.useImag ? 'inline-block' : 'none'}; width:70px;">
+                    <button class="remove-btn" onclick="removeParam('${type}', ${idx})">x</button>
+                `;
+                container.appendChild(row);
+
+                document.getElementById(`${type}-slider-${idx}`).oninput = function() {
+                    arr[idx].real = parseFloat(this.value);
+                    document.getElementById(`${type}-real-${idx}`).value = this.value;
+                    updateAllDebounced();
+                };
+                document.getElementById(`${type}-real-${idx}`).oninput = function() {
+                    arr[idx].real = parseFloat(this.value);
+                    document.getElementById(`${type}-slider-${idx}`).value = this.value;
+                    updateAllDebounced();
+                };
+                document.getElementById(`${type}-imag-check-${idx}`).onchange = function() {
+                    arr[idx].useImag = this.checked;
+                    const imInput = document.getElementById(`${type}-imag-${idx}`);
+                    if (this.checked) imInput.style.display = 'inline-block';
+                    else { imInput.style.display = 'none'; arr[idx].imag = 0; }
+                    updateAllDebounced();
+                };
+                document.getElementById(`${type}-imag-${idx}`).oninput = function() {
+                    arr[idx].imag = parseFloat(this.value) || 0;
+                    updateAllDebounced();
+                };
+            });
+        }
+
+        // Render zeros (reais)
         function renderParamList(listId, arr, type) {
             const container = document.getElementById(listId);
             container.innerHTML = '';
             arr.forEach((val, idx) => {
                 const row = document.createElement('div');
                 row.className = 'param-row';
-                const min = -10, max = 10, step = 0.01;
                 row.innerHTML = `
-                    <input type="range" class="param-slider" id="${type}-slider-${idx}" min="${min}" max="${max}" step="${step}" value="${val}">
+                    <input type="range" class="param-slider" id="${type}-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
                     <input type="number" class="input-inline" id="${type}-input-${idx}" value="${val}">
                     <button class="remove-btn" onclick="removeParam('${type}',${idx})">x</button>
                 `;
                 container.appendChild(row);
 
                 document.getElementById(`${type}-input-${idx}`).oninput = function() {
-                    const val = parsePoloInput(this.value);
-                    // Se parte imaginária existe, salva como array [real, imag]
-                    arr[idx] = val.imag !== 0 ? [val.real, val.imag] : val.real;
-                    document.getElementById(`${type}-slider-${idx}`).value = val.real;
+                    arr[idx] = parseFloat(this.value);
+                    document.getElementById(`${type}-slider-${idx}`).value = this.value;
                     updateAllDebounced();
                 };
                 document.getElementById(`${type}-slider-${idx}`).oninput = function() {
@@ -438,10 +478,11 @@
                 };
             });
         }
+
         function addParam(type) {
-            if (type === 'planta-polos') polos_planta.push(-1);
+            if (type === 'planta-polos') polos_planta.push({ real: -1, imag: 0, useImag: false });
             if (type === 'planta-zeros') zeros_planta.push(0);
-            if (type === 'controlador-polos') polos_controlador.push(-1);
+            if (type === 'controlador-polos') polos_controlador.push({ real: -1, imag: 0, useImag: false });
             if (type === 'controlador-zeros') zeros_controlador.push(0);
             if (type === 'filtro-polos') polos_filtro.push(-1);
             updateParamLists(); renderFiltroParamList(); updateAll();
@@ -460,19 +501,16 @@
         }
         function onGanhoPlantaChange(value) { ganho_planta = parseFloat(value); updateAll(); }
         function onGanhoControladorChange(value) { ganho_controlador = parseFloat(value); updateAll(); }
-        function onGanhoFiltroChange(value) {
-            ganho_filtro = parseFloat(value);
-            updateAll();
-        }
+        function onGanhoFiltroChange(value) { ganho_filtro = parseFloat(value); updateAll(); }
         function onFiltroAtivoChange(checked) {
             filtro_ativo = checked;
             document.getElementById('filtro-config').style.display = checked ? 'block' : 'none';
             updateAll();
         }
         function updateParamLists() {
-            renderParamList('planta-polos-list', polos_planta, 'planta-polos');
+            renderPolosList('planta-polos-list', polos_planta, 'planta-polos');
             renderParamList('planta-zeros-list', zeros_planta, 'planta-zeros');
-            renderParamList('controlador-polos-list', polos_controlador, 'controlador-polos');
+            renderPolosList('controlador-polos-list', polos_controlador, 'controlador-polos');
             renderParamList('controlador-zeros-list', zeros_controlador, 'controlador-zeros');
             document.getElementById('ganho-controlador').value = ganho_controlador;
             document.getElementById('ganho-planta').value = ganho_planta;
@@ -481,7 +519,17 @@
         }
 
         // Helpers LaTeX
-        function countZeroAtZero(arr, tol=1e-8){ if(!Array.isArray(arr)) return 0; return arr.filter(v=>Math.abs(parseFloat(v))<tol).length; }
+        function countZeroAtZero(arr, tol = 1e-8) {
+            if (!Array.isArray(arr)) return 0;
+            return arr.filter(v => {
+                if (v && typeof v === 'object' && 'real' in v) {
+                    const re = Number(v.real) || 0;
+                    const im = (v.useImag ? (Number(v.imag) || 0) : 0);
+                    return Math.abs(re) < tol && Math.abs(im) < tol;
+                }
+                return Math.abs(parseFloat(v) || 0) < tol;
+            }).length;
+        }
         function effectiveZeroPoles(arr, tol=1e-8){ if(!Array.isArray(arr)||arr.length===0) return 1; return countZeroAtZero(arr,tol); }
         function fixFracWithS(latex,kZeros,kPoles,varName='s'){
             if(!latex) return latex;
@@ -524,7 +572,10 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        polos_planta, zeros_planta, polos_controlador, zeros_controlador,
+                        polos_planta: convertToBackend(polos_planta),
+                        zeros_planta: convertToBackend(zeros_planta),
+                        polos_controlador: convertToBackend(polos_controlador),
+                        zeros_controlador: convertToBackend(zeros_controlador),
                         ganho_controlador, ganho_planta, ts_multiplier: multiplier,
                         desired_order: ordemDesejada,
                         desired_poles_type: tipo2,
@@ -582,7 +633,7 @@
                     }
 
                     // PZ via endpoint dedicado
-                    updatePZ(tipoPZ, data);
+                    updatePZ(tipoPZ);
                 })
                 .catch(err => console.error('Erro ao atualizar (alocacao_polos_backend):', err));
             } catch(e) {
@@ -591,23 +642,15 @@
         }
 
         // PZ
-        function updatePZ(tipoPZ, backendData=null) {
-            // Se filtro está ativo e tipo é malha fechada, use o plot_pz_closed do backend
-            if (filtro_ativo && tipoPZ === "malha_fechada" && backendData && backendData.plot_pz_closed) {
-                const plot = backendData.plot_pz_closed;
-                if (plot && plot.data && plot.layout) {
-                    Plotly.newPlot('plot-pz', plot.data, plot.layout, { responsive: true });
-                } else {
-                    Plotly.purge('plot-pz');
-                }
-                return;
-            }
-            // Caso normal: consulta o endpoint dedicado
+        function updatePZ(tipoPZ) {
             fetch('/atualizar_pz_closed', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    polos_planta, zeros_planta, polos_controlador, zeros_controlador,
+                    polos_planta: convertToBackend(polos_planta),
+                    zeros_planta: convertToBackend(zeros_planta),
+                    polos_controlador: convertToBackend(polos_controlador),
+                    zeros_controlador: convertToBackend(zeros_controlador),
                     ganho_controlador, ganho_planta, tipo: tipoPZ
                 })
             })
@@ -641,28 +684,16 @@
                 html = `
                     <div><b>1ª ordem (polo real):</b> T_{5%} = 3/P_d ⇒ P_d = 3/T_{s,fechada}.</div>
                     <div>D_{mf,d}(s) = s + P_d.</div>
-                    <div style="margin-top:8px;">
-                        <b>Exemplo:</b> Se o polo da planta é <b>a</b>, então:<br>
-                        \\( D_{mf}(s) = s + a + k_c \\)
-                    </div>
                 `;
             } else if (ordem === '2') {
                 html = `
                     <div><b>2ª ordem (2 reais iguais ou distintos):</b> T_{5%} = 4.8/P_d ⇒ P_d = 4.8/T_{s,fechada}.</div>
                     <div>D_{mf,d}(s) = s^2 + (a + k k_c)s + k_c z</div>
-                    <div style="margin-top:8px;">
-                        <b>Exemplo:</b> Se o polo da planta é <b>1.82</b>, então:<br>
-                        \\( D_{mf}(s) = s^2 + (1.82 + k k_c)s + k_c z \\)
-                    </div>
                 `;
             } else if (ordem === '3') {
                 html = `
                     <div><b>3ª ordem (três reais iguais):</b> T_{5%} ≈ 6.3/P_d ⇒ P_d = 6.3/T_{s,fechada}.</div>
                     <div>D_{mf,d}(s) = (s + P_d)^3.</div>
-                    <div style="margin-top:8px;">
-                        <b>Exemplo:</b> Se o polo da planta é <b>a</b>, então:<br>
-                        \\( D_{mf}(s) = (s + a + k_c)^3 \\)
-                    </div>
                 `;
             }
             const el = document.getElementById('poly-fechada-info-modal');
@@ -729,19 +760,49 @@
             updateAll();
         });
 
-        function parsePoloInput(str) {
-    str = String(str).replace(/\s+/g, '');
-    // Aceita "a+b", "a-b", "a+-b", "a--b"
-    const match = str.match(/^([+-]?\d*\.?\d+)(?:([+-]{1,2}\d*\.?\d+))?$/);
-    if (match) {
-        const real = parseFloat(match[1]);
-        const imag = match[2] ? parseFloat(match[2].replace('+-', '-').replace('--', '+')) : 0;
-        return { real, imag };
+        // Stub opcional (mantido do seu layout)
+        function generateRandomFT(){
+             function rnd(min, max){ return Math.random()*(max-min)+min; }
+        function negStable(min, max){ return -rnd(min, max); }
+
+        // Polos da planta: 1 a 3, permitindo par complexo conjugado (useImag=true)
+        let nRest = Math.floor(rnd(1, 4)); // 1..3
+        const novosPolos = [];
+        while (nRest > 0) {
+            if (nRest >= 2 && Math.random() < 0.5) {
+                const re = negStable(0.2, 3.0);
+                const im = rnd(0.2, 3.0);
+                novosPolos.push({ real: re, imag: im, useImag: true }); // conta como 2 polos
+                nRest -= 2;
+            } else {
+                novosPolos.push({ real: negStable(0.2, 3.0), imag: 0, useImag: false });
+                nRest -= 1;
+            }
+        }
+        polos_planta = novosPolos;
+
+        // Zeros da planta: garantir própria (n_zeros <= n_polos equivalentes)
+        const nPolosEquiv = convertToBackend(polos_planta).length; // par complexo conta como 2
+        const maxZeros = Math.max(0, nPolosEquiv - 1);
+        const nZeros = Math.floor(Math.random() * (maxZeros + 1));
+        zeros_planta = Array.from({ length: nZeros }, () => negStable(0.0, 3.0));
+
+        // Ganho da planta
+        ganho_planta = parseFloat(rnd(0.5, 2.5).toFixed(2));
+        const ganhoPlEl = document.getElementById('ganho-planta');
+        if (ganhoPlEl) ganhoPlEl.value = ganho_planta;
+
+        // Zerar controlador para evitar não-própria acidental
+        polos_controlador = [];
+        zeros_controlador = [];
+        ganho_controlador = 1.0;
+        const ganhoCtrlEl = document.getElementById('ganho-controlador');
+        if (ganhoCtrlEl) ganhoCtrlEl.value = ganho_controlador;
+
+        // Atualiza UI e gráficos
+        updateParamLists();
+        updateAll();
     }
-    // Se não bater, tenta só número
-    const val = parseFloat(str);
-    return { real: isNaN(val) ? 0 : val, imag: 0 };
-}
     </script>
 </body>
 </html>

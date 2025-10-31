@@ -88,19 +88,22 @@ def latex_monic(coeffs, var='s'):
     return latex_poly(norm, var)
 
 def latex_factored(roots, var='s'):
-    if len(roots) == 0 or np.allclose(roots, 0):
+    roots = np.array(roots, dtype=complex).flatten()
+    if roots.size == 0 or np.allclose(roots, 0):
         return "1"
     termos = []
     for r in roots:
-        if abs(r) < 1e-10:
+        a = float(np.real(r))
+        b = float(np.imag(r))
+        if abs(a) < 1e-10 and abs(b) < 1e-10:
             termos.append(f"{var}")
+        elif abs(b) < 1e-10:
+            sinal = "-" if a >= 0 else "+"
+            valor = abs(a)
+            termos.append(f"({var} {sinal} {valor:.3g})")
         else:
-            sinal = "-" if r >= 0 else "+"
-            valor = abs(r)
-            if valor < 1e-10:
-                termos.append(f"{var}")
-            else:
-                termos.append(f"({var} {sinal} {valor:.3g})")
+            sinal_im = "+" if b >= 0 else "-"
+            termos.append(f"({var} - ({a:.3g} {sinal_im} {abs(b):.3g}j))")
     return "".join(termos)
 
 def latex_partial_fraction(num, den, var='s'):
@@ -193,10 +196,10 @@ def atualizar():
 @app.route('/atualizar_bode', methods=['POST'])
 def atualizar_bode():
     data = request.get_json()
-    polos_planta = [float(p) for p in data.get("polos_planta", [-1])]
-    zeros_planta = [float(z) for z in data.get("zeros_planta", [0])]
-    polos_controlador = [float(p) for p in data.get("polos_controlador", [-1])]
-    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [0])]
+    polos_planta = parse_polos_zeros(data.get("polos_planta", [-1]))
+    zeros_planta = parse_polos_zeros(data.get("zeros_planta", [0]))
+    polos_controlador = parse_polos_zeros(data.get("polos_controlador", [-1]))
+    zeros_controlador = parse_polos_zeros(data.get("zeros_controlador", [0]))
     ganho_controlador = float(data.get("ganho_controlador", 1.0))
 
     zeros_planta_filtrados = [z for z in zeros_planta if abs(z) > 1e-8]
@@ -231,13 +234,13 @@ def atualizar_bode():
     }
     return jsonify({"bode_data": bode_data})
 
-@app.route('/atualizar_nyquist', methods=['POST'])
-def atualizar_nyquist():
+@app.route('/nyquist_pagina4', methods=['POST'])
+def nyquist_pagina4():
     data = request.get_json()
-    polos_planta = [float(p) for p in data.get("polos_planta", [-1])]
-    zeros_planta = [float(z) for z in data.get("zeros_planta", [0])]
-    polos_controlador = [float(p) for p in data.get("polos_controlador", [-1])]
-    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [0])]
+    polos_planta = parse_polos_zeros(data.get("polos_planta", [-1]))
+    zeros_planta = parse_polos_zeros(data.get("zeros_planta", [0]))
+    polos_controlador = parse_polos_zeros(data.get("polos_controlador", [-1]))
+    zeros_controlador = parse_polos_zeros(data.get("zeros_controlador", [0]))
     ganho_controlador = float(data.get("ganho_controlador", 1.0))
 
     zeros_planta_filtrados = [z for z in zeros_planta if abs(z) > 1e-8]
@@ -250,40 +253,40 @@ def atualizar_nyquist():
     num_controlador = ganho_controlador * (np.poly(zeros_controlador_filtrados) if zeros_controlador_filtrados else np.array([1.0]))
     den_controlador = np.poly(polos_controlador_filtrados) if polos_controlador_filtrados else np.array([1.0])
 
-    num_open = np.polymul(num_planta, num_controlador)
-    den_open = np.polymul(den_planta, den_controlador)
-    G_open = ctl.tf(num_open, den_open)
+    G_open = ctl.tf(np.polymul(num_planta, num_controlador), np.polymul(den_planta, den_controlador))
 
-    omega = np.logspace(-2, 2, 500)
-    _, H, _ = ctl.freqresp(G_open, omega)
-    real = np.real(H[0]).tolist() if H.ndim == 3 else np.real(H).tolist()
-    imag = np.imag(H[0]).tolist() if H.ndim == 3 else np.imag(H).tolist()
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ctl.nyquist_plot(G_open, omega=np.logspace(-2, 2, 500), ax=ax, color='b')
+    ax.set_title("Diagrama de Nyquist")
+    ax.set_xlabel("Re")
+    ax.set_ylabel("Im")
+    ax.grid(True)
+    plt.tight_layout()
 
-    nyquist_data = {
-        "data": [
-            {"x": real, "y": imag, "mode": "lines", "name": "Nyquist"},
-            {"x": real, "y": [-i for i in imag], "mode": "lines", "name": "Nyquist (espelhado)", "line": {"dash": "dash"}}
-        ],
-        "layout": {
-            "title": "Diagrama de Nyquist",
-            "xaxis": {"title": "Eixo Real"},
-            "yaxis": {"title": "Eixo Imaginário"},
-            "showlegend": True,
-            "yaxis_scaleanchor": "x",
-            "yaxis_scaleratio": 1
-        }
-    }
-    return jsonify({"nyquist_data": nyquist_data})
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    plt.close(fig)
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    return jsonify({"nyquist_img": img_base64})
 
-
+def parse_polos_zeros(arr):
+    # Converte [real, imag] para complex, senão float
+    result = []
+    for p in arr:
+        if isinstance(p, list) and len(p) == 2:
+            result.append(complex(p[0], p[1]))
+        else:
+            result.append(float(p))
+    return result
 # Página 4 — Malha fechada (sem filtro) + overlays + LaTeX
 @app.route('/atualizar_pagina4', methods=['POST'])
 def atualizar_pagina4():
     data = request.get_json()
-    polos_planta = [float(p) for p in data.get("polos_planta", [-1])]
-    zeros_planta = [float(z) for z in data.get("zeros_planta", [0])]
-    polos_controlador = [float(p) for p in data.get("polos_controlador", [-1])]
-    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [0])]
+    polos_planta = parse_polos_zeros(data.get("polos_planta", [-1]))
+    zeros_planta = parse_polos_zeros(data.get("zeros_planta", [0]))
+    polos_controlador = parse_polos_zeros(data.get("polos_controlador", [-1]))
+    zeros_controlador = parse_polos_zeros(data.get("zeros_controlador", [0]))
     ganho_controlador = float(data.get("ganho_controlador", 1.0))
     ganho_planta = float(data.get("ganho_planta", 1.0))
 
@@ -347,17 +350,16 @@ def atualizar_pagina4():
         "perturb_closed_data": perturb_closed_data
     })
 
-
 # PZ para diferentes seleções (malha aberta/fechada/erro/perturbação)
 @app.route('/atualizar_pz_closed', methods=['POST'])
 def atualizar_pz_closed():
     data = request.get_json(force=True)
     tipo = data.get("tipo", "malha_fechada")
-    polos_planta = [float(p) for p in data.get("polos_planta", [-1])]
-    zeros_planta = [float(z) for z in data.get("zeros_planta", [])]
+    polos_planta = parse_polos_zeros(data.get("polos_planta", [-1]))
+    zeros_planta = parse_polos_zeros(data.get("zeros_planta", []))
     ganho_planta = float(data.get("ganho_planta", 1.0))
-    polos_controlador = [float(p) for p in data.get("polos_controlador", [])]
-    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [])]
+    polos_controlador = parse_polos_zeros(data.get("polos_controlador", []))
+    zeros_controlador = parse_polos_zeros(data.get("zeros_controlador", []))
     ganho_controlador = float(data.get("ganho_controlador", 1.0))
 
     num_planta = ganho_planta * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
@@ -478,42 +480,6 @@ def nyquist_pagina2():
 
     fig, ax = plt.subplots(figsize=(7, 4))
     ctl.nyquist_plot(G_planta, omega=np.logspace(-2, 2, 500), ax=ax, color='b')
-    ax.set_title("Diagrama de Nyquist")
-    ax.set_xlabel("Re")
-    ax.set_ylabel("Im")
-    ax.grid(True)
-    plt.tight_layout()
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png")
-    plt.close(fig)
-    buf.seek(0)
-    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-    return jsonify({"nyquist_img": img_base64})
-
-@app.route('/nyquist_pagina4', methods=['POST'])
-def nyquist_pagina4():
-    data = request.get_json()
-    polos_planta = [float(p) for p in data.get("polos_planta", [-1])]
-    zeros_planta = [float(z) for z in data.get("zeros_planta", [0])]
-    polos_controlador = [float(p) for p in data.get("polos_controlador", [-1])]
-    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [0])]
-    ganho_controlador = float(data.get("ganho_controlador", 1.0))
-
-    zeros_planta_filtrados = [z for z in zeros_planta if abs(z) > 1e-8]
-    polos_planta_filtrados = [p for p in polos_planta if abs(p) > 1e-8]
-    zeros_controlador_filtrados = [z for z in zeros_controlador if abs(z) > 1e-8]
-    polos_controlador_filtrados = [p for p in polos_controlador if abs(p) > 1e-8]
-
-    num_planta = np.poly(zeros_planta_filtrados) if zeros_planta_filtrados else np.array([1.0])
-    den_planta = np.poly(polos_planta_filtrados) if polos_planta_filtrados else np.array([1.0])
-    num_controlador = ganho_controlador * (np.poly(zeros_controlador_filtrados) if zeros_controlador_filtrados else np.array([1.0]))
-    den_controlador = np.poly(polos_controlador_filtrados) if polos_controlador_filtrados else np.array([1.0])
-
-    G_open = ctl.tf(np.polymul(num_planta, num_controlador), np.polymul(den_planta, den_controlador))
-
-    fig, ax = plt.subplots(figsize=(7, 4))
-    ctl.nyquist_plot(G_open, omega=np.logspace(-2, 2, 500), ax=ax, color='b')
     ax.set_title("Diagrama de Nyquist")
     ax.set_xlabel("Re")
     ax.set_ylabel("Im")
@@ -706,11 +672,12 @@ def state_equation():
 def alocacao_polos_backend():
     data = request.get_json()
 
-    polos_planta = [float(p) for p in data.get("polos_planta", [-0.0758])]
-    zeros_planta = [float(z) for z in data.get("zeros_planta", [])]
+    # Agora aceita listas [re, im] (par conjugado montado no frontend) e valores reais
+    polos_planta = parse_polos_zeros(data.get("polos_planta", [-0.0758]))
+    zeros_planta = parse_polos_zeros(data.get("zeros_planta", []))
     ganho_planta = float(data.get("ganho_planta", 1.0))
-    polos_controlador = [float(p) for p in data.get("polos_controlador", [])]
-    zeros_controlador = [float(z) for z in data.get("zeros_controlador", [])]
+    polos_controlador = parse_polos_zeros(data.get("polos_controlador", []))
+    zeros_controlador = parse_polos_zeros(data.get("zeros_controlador", []))
     ganho_controlador = float(data.get("ganho_controlador", 1.0))
     ts_multiplier = float(data.get("ts_multiplier", 0.5))
 
@@ -842,7 +809,6 @@ def alocacao_polos_backend():
 
     try:
         if filtro_ativo and polos_filtro:
-            # DPz do sistema filtrado: F(s) * G_closed
             num_filt = np.polymul(np.array(F.num).flatten(), np.array(G_closed.num).flatten())
             den_filt = np.polymul(np.array(F.den).flatten(), np.array(G_closed.den).flatten())
             zeros_closed = np.roots(num_filt) if num_filt.size else np.array([])
@@ -898,7 +864,124 @@ def alocacao_polos_backend():
         "plot_closed_filt": plot_closed_filt
     })
 
+@app.route('/lgr_backend', methods=['POST'])
+def lgr_backend():
+    data = request.get_json(force=True)
+    polos_planta = parse_polos_zeros(data.get("polos_planta", [-1]))
+    zeros_planta = parse_polos_zeros(data.get("zeros_planta", []))
+    ganho = float(data.get("ganho", 1.0))
 
+    polos_controlador = parse_polos_zeros(data.get("polos_controlador", []))
+    zeros_controlador = parse_polos_zeros(data.get("zeros_controlador", []))
+    ganho_controlador = float(data.get("ganho_controlador", 1.0))
+    tipo = data.get("tipo", "malha_aberta")
+
+    # G(s) e Gc(s)
+    num_g = ganho * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
+    den_g = np.poly(polos_planta) if polos_planta else np.array([1.0])
+    G = ctl.tf(num_g, den_g)
+
+    num_c = ganho_controlador * (np.poly(zeros_controlador) if zeros_controlador else np.array([1.0]))
+    den_c = np.poly(polos_controlador) if polos_controlador else np.array([1.0])
+    C = ctl.tf(num_c, den_c)
+
+    if tipo == 'planta':
+        sys = G
+        titulo = "Lugar das Raízes — Planta"
+    elif tipo == 'controlador':
+        sys = C
+        titulo = "Lugar das Raízes — Controlador"
+    else:
+        # Para LGR, sempre usa o sistema em malha aberta L(s)=C(s)G(s)
+        sys = C * G
+        titulo = "Lugar das Raízes — Malha Aberta (C·G)"
+
+    # Cálculo do LGR (sem plot do matplotlib)
+    rlist, klist = ctl.root_locus(sys, plot=False)
+    r = np.array(rlist)
+    k = np.array(klist).flatten()
+
+    # Normaliza dimensão: branches = lista de colunas (um ramo por polo)
+    branches = []
+    if r.ndim == 2:
+        if r.shape[0] == len(k):
+            for i in range(r.shape[1]):
+                branches.append(r[:, i])
+        else:
+            for i in range(r.shape[0]):
+                branches.append(r[i, :])
+    traces = []
+    for i, br in enumerate(branches):
+        traces.append({
+            "x": np.real(br).tolist(),
+            "y": np.imag(br).tolist(),
+            "mode": "lines",
+            "name": f"Ramo {i+1}"
+        })
+
+    # Polos e zeros de L(s) (ou do sys selecionado)
+    num = np.array(sys.num).flatten()
+    den = np.array(sys.den).flatten()
+    z = np.roots(num) if num.size else np.array([])
+    p = np.roots(den) if den.size else np.array([])
+    traces.extend([
+        {"x": np.real(z).tolist(), "y": np.imag(z).tolist(), "mode": "markers", "name": "Zeros", "marker": {"color": "blue", "size": 10, "symbol": "circle"}},
+        {"x": np.real(p).tolist(), "y": np.imag(p).tolist(), "mode": "markers", "name": "Polos", "marker": {"color": "red", "size": 12, "symbol": "x"}}
+    ])
+
+    lgr_plot = {
+        "data": traces,
+        "layout": {
+            "title": titulo,
+            "xaxis": {"title": "Re", "zeroline": True},
+            "yaxis": {"title": "Im", "zeroline": True, "scaleanchor": "x", "scaleratio": 1},
+            "showlegend": True
+        }
+    }
+    return jsonify({"lgr_plot": lgr_plot})
+
+
+@app.route('/step_backend', methods=['POST'])
+def step_backend():
+    data = request.get_json(force=True)
+    polos_planta = parse_polos_zeros(data.get("polos_planta", [-1]))
+    zeros_planta = parse_polos_zeros(data.get("zeros_planta", []))
+    ganho = float(data.get("ganho", 1.0))
+
+    polos_controlador = parse_polos_zeros(data.get("polos_controlador", []))
+    zeros_controlador = parse_polos_zeros(data.get("zeros_controlador", []))
+    ganho_controlador = float(data.get("ganho_controlador", 1.0))
+    tipo = data.get("tipo", "malha_fechada")
+
+    num_g = ganho * (np.poly(zeros_planta) if zeros_planta else np.array([1.0]))
+    den_g = np.poly(polos_planta) if polos_planta else np.array([1.0])
+    G = ctl.tf(num_g, den_g)
+
+    num_c = ganho_controlador * (np.poly(zeros_controlador) if zeros_controlador else np.array([1.0]))
+    den_c = np.poly(polos_controlador) if polos_controlador else np.array([1.0])
+    C = ctl.tf(num_c, den_c)
+
+    L = C * G
+    if tipo == "malha_aberta":
+        sys = G  # apenas a planta em malha aberta
+        nome = "Planta (Malha Aberta)"
+    elif tipo == "erro":
+        sys = ctl.feedback(ctl.tf([1.0], [1.0]), L)  # S = 1/(1+L)
+        nome = "E/R = 1/(1+CG)"
+    elif tipo == "perturbacao":
+        sys = ctl.feedback(G, C)  # Y/Q = G/(1+CG)
+        nome = "Y/Q = G/(1+CG)"
+    else:  # malha_fechada
+        sys = ctl.feedback(L)  # Y/R = L/(1+L)
+        nome = "Y/R = CG/(1+CG)"
+
+    T = np.linspace(0, 10, 600)
+    _, y = ctl.step_response(sys, T)
+    step_plot = {
+        "data": [{"x": T.tolist(), "y": y.tolist(), "mode": "lines", "name": nome}],
+        "layout": {"title": "Resposta ao Degrau", "xaxis": {"title": "Tempo (s)"}, "yaxis": {"title": "Amplitude"}}
+    }
+    return jsonify({"step_plot": step_plot})
 # Página 2 — Malha aberta
 @app.route('/atualizar_pagina2', methods=['POST'])
 def atualizar_pagina2():

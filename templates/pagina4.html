@@ -25,26 +25,18 @@
         height: auto !important;
         max-height: none !important;
     }
-    html, body {
-        height: 100%;
-        overflow-y: auto;
-    }
+    html, body { height: 100%; overflow-y: auto; }
     body {
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f3f3f7;
-            zoom: 0.9;
-            transition: background 0.3s, color 0.3s;
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f3f3f7;
+        zoom: 0.9;
+        transition: background 0.3s, color 0.3s;
     }
     body.dark-mode .left-section,
-    body.dark-mode .right-section {
-        border-color: #CF1259 !important; /* Escolha a cor desejada */
-    }
-    .main-container {
-        align-items: flex-start !important;
-    }
-    /* FORÇA O ESTILO DOS LINKS DO MENU COMO NA PAGINA2 */
+    body.dark-mode .right-section { border-color: #CF1259 !important; }
+    .main-container { align-items: flex-start !important; }
     .menu-link {
         display: block !important;
         margin: 12px 0 0 0 !important;
@@ -65,70 +57,28 @@
         box-shadow: 0 4px 12px rgba(33,150,243,0.18) !important;
         text-decoration: none !important;
     }
-    /* Ícones do menu hamburguer igual pagina2 */
-    .menu-icon {
-        width: 28px;
-        height: 4px;
-        background: #1976d2;
-        margin: 3px 0;
-        border-radius: 2px;
-    }
-    /* Menu hamburguer igual pagina2 */
+    .menu-icon { width: 28px; height: 4px; background: #1976d2; margin: 3px 0; border-radius: 2px; }
     .menu-content {
         display: none;
         position: absolute;
-        left: 40px;
-        top: 0;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        padding: 18px 18px 18px 18px;
-        min-width: 260px;
-        z-index: 1001;
+        left: 40px; top: 0;
+        background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        padding: 18px; min-width: 260px; z-index: 1001;
     }
     .menu.open .menu-content,
     .menu:hover .menu-content,
-    .menu:focus-within .menu-content {
-        display: block;
-    }
-    .menu.open,
-    .menu:hover,
-    .menu:focus-within {
-        z-index: 1002;
-    }
+    .menu:focus-within .menu-content { display: block; }
+    .menu.open, .menu:hover, .menu:focus-within { z-index: 1002; }
 
-    #select-ft-planta,
-    #select-ft-controlador {
-        width: 85px;
-        font-size: 0.75em;
-        padding: 1px 2px;
-    }
-    body.dark-mode #parametros-fixos {
-    background: #142447 !important; /* mesmo fundo do controlador */
-    color: #fff !important;
-    }
+    #select-ft-planta, #select-ft-controlador { width:auto; font-size: 0.75em; padding: 1px 2px; }
+    body.dark-mode #parametros-fixos { background: #142447 !important; color: #fff !important; }
 
-    .input-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 6px;
-    }
-    .param-slider {
-        width: 70px;
-        min-width: 0;
-        margin-right: 2px;
-    }
+    .input-row { display: flex; align-items: center;  margin-bottom: 6px; }
+    .param-slider { width: 70px; min-width: 0; margin-right: 2px; }
     input[type="number"] {
-        border: 2px solid #ffffff;
-        border-radius: 4px;
-        outline: none;
-        width: 55px !important;
-        min-width: 0;
-        margin-right: 2px;
-        font-size: 0.95em;
-        padding: 2px 4px;
-        background: #ffffff;
+        border: 2px solid #ffffff; border-radius: 4px; outline: none;
+        width: 55px !important; min-width: 0;
+        font-size: 0.95em;  background: #ffffff;
     }
     </style>
 </head>
@@ -152,42 +102,23 @@
             <a href="/alocacao" class="menu-link" style="margin-top:0;">Alocação de Polos</a>
             <a href="/raizes" class="menu-link" style="margin-top:0;">Lugar das Raízes</a>
             <a href="/malhaaberta" class="menu-link" style="margin-top:0;">Malha Aberta</a>
-           
             <button id="abrir-feedback" style="margin-top:10px;">Enviar Feedback</button>
         </div>
+    </div>
 
-        </div>
-
-    <!-- Espaço para não sobrepor o conteúdo -->
     <div style="height:56px;"></div>
 
-    <!-- Container principal ocupando toda a tela -->
     <div class="main-container" style="
-        display: flex;
-        flex-direction: row;
-        gap: 24px;
-        width: 100vw;
-        align-items: stretch;
-        box-sizing: border-box;
-        justify-content: center;
-        padding-left: 24px;
-        padding-right: 24px;
+        display: flex; flex-direction: row; gap: 24px; width: 100vw;
+        align-items: stretch; box-sizing: border-box; justify-content: center;
+        padding-left: 24px; padding-right: 24px;
     ">
-        <!-- Seção Esquerda -->
+        <!-- Esquerda -->
         <div class="left-section" style="
-            flex: 0 0 35%;
-            width: 35%;
-            overflow: visible;
-            padding: 1px 16px 16px 16px;
-            box-sizing: border-box;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px #0001;
-            min-width: 350px;
-            margin-bottom: 0;
-            position: sticky;
-            top: 56px;
-            z-index: 10;
+            flex: 0 0 35%; width: 35%; overflow: visible; padding: 1px 16px 16px 16px;
+            box-sizing: border-box; background: #fff; border-radius: 8px;
+            box-shadow: 0 2px 8px #0001; min-width: 350px; margin-bottom: 0;
+            position: sticky; top: 56px; z-index: 10;
         ">
             <div id="parametros-fixos" style="margin-bottom: 4px;">
                 <h3>Ajuste de Parâmetros</h3>
@@ -205,7 +136,6 @@
                             <button type="button" class="add-btn" id="add-planta-zero-btn">Adicionar Zero</button>
                         </div>
                     </div>
-                    <!-- FT da Planta logo abaixo dos parâmetros da planta -->
                     <div style="margin-top: 16px;">
                         <b>Função de Transferência da Planta:</b>
                         <select id="select-ft-planta" style="margin-left: 8px;">
@@ -220,13 +150,9 @@
                 </div>
             </div>
             <div style="
-                margin-bottom: 0;
-                background: #ffffff;
-                border-radius: 8px;
-                padding: 5px 16px 16px 16px;
-                border-top-left-radius: 0;
-                border-top-right-radius: 0;
-                box-shadow: 0 -1px 4px rgba(255, 255, 255, 0.067);
+                margin-bottom: 0; background: #ffffff; border-radius: 8px;
+                padding: 5px 16px 16px 16px; border-top-left-radius: 0;
+                border-top-right-radius: 0; box-shadow: 0 -1px 4px rgba(255, 255, 255, 0.067);
                 position: relative;
             ">
                 <h3 style="margin-top:0;">Controlador</h3>
@@ -260,30 +186,20 @@
             </div>
         </div>
 
-        <!-- Seção Direita -->
+        <!-- Direita -->
         <div class="right-section" style="
-            flex: 1 1 0;
-            width: 0;
-            overflow: visible;
-            padding: 16px;
-            box-sizing: border-box;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px #0001;
-            min-width: 350px;
-            margin-bottom: 0;
-            display: flex;
-            flex-direction: column;
+            flex: 1 1 0; width: 0; overflow: visible; padding: 16px; box-sizing: border-box;
+            background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001;
+            min-width: 350px; margin-bottom: 0; display: flex; flex-direction: column;
         ">
             <h3>Gráficos</h3>
 
-            <!-- Resposta ao Degrau (Malha Fechada) -->
+            <!-- Resposta ao Degrau -->
             <div style="display: flex; align-items: center; margin-bottom: 4px;">
                 <button id="seta-grafico-closed" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
                 <h4 style="margin: 0 8px 0 0;">Resposta ao Degrau </h4>
             </div>
             <div id="container-plot-closed" style="margin-bottom: 16px;">
-                <!-- Parâmetros da Perturbação -->
                 <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 8px;">
                     <span style="font-weight: bold; color: #1976d2;">Parâmetros da Perturbação:</span>
                     <label for="input-t-fechada-grafico">Tempo:</label>
@@ -292,7 +208,6 @@
                     <input id="input-a-fechada-grafico" type="number" min="-5" max="5" step="0.01" value="0" style="width: 60px;">
                     <input type="range" id="slider-a-fechada-grafico" min="-5" max="5" step="0.01" value="0" style="width: 180px;">
                 </div>
-                <!-- Checkboxes para mostrar/ocultar todas as curvas -->
                 <div style="display:flex; gap:16px; align-items:center; margin: 6px 0; flex-wrap: wrap;">
                     <strong>Mostrar curvas:</strong>
                     <label><input type="checkbox" id="cb-base-sem" checked> <span class="font-montserrat">Malha Fechada</span></label>
@@ -304,11 +219,10 @@
                 <div id="plot_closed"></div>
             </div>
 
-            <!-- Diagrama de Polos e Zeros (Malha Fechada) -->
+            <!-- PZ -->
             <div style="display: flex; align-items: center; margin-bottom: 4px; margin-top: 16px;">
                 <button id="seta-grafico-pz-closed" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
                 <h4 style="margin: 0 8px 0 0;">Diagrama de Polos e Zeros</h4>
-                <!-- Novo seletor de tipo de diagrama -->
                 <select id="tipo-diagrama-pz" style="margin-left: 8px;">
                     <option value="malha_fechada" selected>Malha Fechada</option>
                     <option value="malha_aberta">Malha Aberta</option>
@@ -320,8 +234,7 @@
                 <div id="plot_pz_closed"></div>
             </div>
 
-        
-            <!-- Diagrama de Bode -->
+            <!-- Bode -->
             <div style="display: flex; align-items: center; margin-bottom: 4px; margin-top: 16px;">
                 <button id="seta-grafico-bode" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
                 <h4 style="margin: 0 8px 0 0;">Diagrama de Bode</h4>
@@ -330,7 +243,7 @@
                 <div id="plot_bode"></div>
             </div>
 
-            <!-- Diagrama de Nyquist -->
+            <!-- Nyquist -->
             <div style="display: flex; align-items: center; margin-bottom: 4px; margin-top: 16px;">
                 <button id="seta-grafico-nyquist" class="seta-grafico-btn" style="background:none;border:none;font-size:1.3em;cursor:pointer;color:#2196f3;margin-right:6px;">&#x25BC;</button>
                 <h4 style="margin: 0 8px 0 0;">Diagrama de Nyquist</h4>
@@ -351,486 +264,491 @@
     </div>
 
     <script>
-    // --- Estado dos polos e zeros ---
-let polosPlanta = [-1];
-let zerosPlanta = [];
-let polosControlador = [-1];
-let zerosControlador = [];
+    // Estado padronizado: polos como objetos {real, imag, useImag}
+    let polosPlanta = [{ real: -1, imag: 0, useImag: false }];
+    let zerosPlanta = [];
+    let polosControlador = [{ real: -1, imag: 0, useImag: false }];
+    let zerosControlador = [];
 
-// Função debounce
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-}
-
-// Crie uma versão debounced da função atualizarTudo
-const atualizarTudoDebounced = debounce(atualizarTudo, 30);
-
-function renderInputs() {
-    // Planta - Polos
-    const polosList = document.getElementById('planta-polos-list');
-    polosList.innerHTML = '';
-    polosPlanta.forEach((val, idx) => {
-        const row = document.createElement('div');
-        row.className = 'input-row';
-        row.innerHTML = `
-            <input type="range" class="param-slider" id="polo-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
-            <input type="number" id="polo-planta-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
-            <button type="button" class="remove-btn" id="remove-planta-polo-${idx}" title="Remover Polo">&times;</button>
-        `;
-        polosList.appendChild(row);
-        // Input numérico
-        document.getElementById(`polo-planta-input-${idx}`).oninput = function() {
-            polosPlanta[idx] = parseFloat(this.value);
-            document.getElementById(`polo-planta-slider-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Slider
-        document.getElementById(`polo-planta-slider-${idx}`).oninput = function() {
-            polosPlanta[idx] = parseFloat(this.value);
-            document.getElementById(`polo-planta-input-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Remover
-        document.getElementById(`remove-planta-polo-${idx}`).onclick = function() {
-            if (polosPlanta.length > 1) {
-                polosPlanta.splice(idx, 1);
-                renderInputs();
-                atualizarTudoDebounced();
+    // Converte itens para o backend respeitando "useImag"
+    // - useImag=false => envia somente o real (im=0)
+    // - useImag=true  => envia par conjugado [re, +im] e [re, -im] quando |im|>0
+    function convertToBackend(arr) {
+        const out = [];
+        for (const p of arr) {
+            if (p && typeof p === 'object' && 'real' in p) {
+                const re = Number(p.real) || 0;
+                const im = Number(p.imag) || 0;
+                const useImag = !!p.useImag;
+                if (useImag && Math.abs(im) > 1e-12) {
+                    out.push([re, im], [re, -im]);
+                } else {
+                    out.push(re);
+                }
+            } else {
+                out.push(Number(p) || 0);
             }
+        }
+        return out;
+    }
+
+    // Debounce
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
         };
-    });
-    // Planta - Zeros
-    const zerosList = document.getElementById('planta-zeros-list');
-    zerosList.innerHTML = '';
-    zerosPlanta.forEach((val, idx) => {
-        const row = document.createElement('div');
-        row.className = 'input-row';
-        row.innerHTML = `
-            <input type="range" class="param-slider" id="zero-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
-            <input type="number" id="zero-planta-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
-            <button type="button" class="remove-btn" id="remove-planta-zero-${idx}" title="Remover Zero">&times;</button>
-        `;
-        zerosList.appendChild(row);
-        // Input numérico
-        document.getElementById(`zero-planta-input-${idx}`).oninput = function() {
-            zerosPlanta[idx] = parseFloat(this.value);
-            document.getElementById(`zero-planta-slider-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Slider
-        document.getElementById(`zero-planta-slider-${idx}`).oninput = function() {
-            zerosPlanta[idx] = parseFloat(this.value);
-            document.getElementById(`zero-planta-input-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Remover
-        document.getElementById(`remove-planta-zero-${idx}`).onclick = function() {
-            zerosPlanta.splice(idx, 1);
-            renderInputs();
-            atualizarTudoDebounced();
-        };
-    });
-    // Controlador - Polos
-    const polosListC = document.getElementById('controlador-polos-list');
-    polosListC.innerHTML = '';
-    polosControlador.forEach((val, idx) => {
-        const row = document.createElement('div');
-        row.className = 'input-row';
-        row.innerHTML = `
-            <input type="range" class="param-slider" id="polo-controlador-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
-            <input type="number" id="polo-controlador-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
-            <button type="button" class="remove-btn" id="remove-controlador-polo-${idx}" title="Remover Polo">&times;</button>
-        `;
-        polosListC.appendChild(row);
-        // Input numérico
-        document.getElementById(`polo-controlador-input-${idx}`).oninput = function() {
-            polosControlador[idx] = parseFloat(this.value);
-            document.getElementById(`polo-controlador-slider-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Slider
-        document.getElementById(`polo-controlador-slider-${idx}`).oninput = function() {
-            polosControlador[idx] = parseFloat(this.value);
-            document.getElementById(`polo-controlador-input-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Remover
-        document.getElementById(`remove-controlador-polo-${idx}`).onclick = function() {
-            if (polosControlador.length > 1) {
-                polosControlador.splice(idx, 1);
-                renderInputs();
-                atualizarTudoDebounced();
+    }
+    const atualizarTudoDebounced = debounce(atualizarTudo, 30);
+
+    // Render inputs
+    function renderInputs() {
+        // Planta - Polos
+        const polosList = document.getElementById('planta-polos-list');
+        polosList.innerHTML = '';
+        polosPlanta.forEach((val, idx) => {
+            if (!(val && typeof val === 'object' && 'real' in val)) {
+                polosPlanta[idx] = { real: Number(val) || 0, imag: 0, useImag: false };
+                val = polosPlanta[idx];
             }
-        };
-    });
-    // Controlador - Zeros
-    const zerosListC = document.getElementById('controlador-zeros-list');
-    zerosListC.innerHTML = '';
-    zerosControlador.forEach((val, idx) => {
-        const row = document.createElement('div');
-        row.className = 'input-row';
-        row.innerHTML = `
-            <input type="range" class="param-slider" id="zero-controlador-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
-            <input type="number" id="zero-controlador-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
-            <button type="button" class="remove-btn" id="remove-controlador-zero-${idx}" title="Remover Zero">&times;</button>
-        `;
-        zerosListC.appendChild(row);
-        // Input numérico
-        document.getElementById(`zero-controlador-input-${idx}`).oninput = function() {
-            zerosControlador[idx] = parseFloat(this.value);
-            document.getElementById(`zero-controlador-slider-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Slider
-        document.getElementById(`zero-controlador-slider-${idx}`).oninput = function() {
-            zerosControlador[idx] = parseFloat(this.value);
-            document.getElementById(`zero-controlador-input-${idx}`).value = this.value;
-            atualizarTudoDebounced();
-        };
-        // Remover
-        document.getElementById(`remove-controlador-zero-${idx}`).onclick = function() {
-            zerosControlador.splice(idx, 1);
-            renderInputs();
-            atualizarTudoDebounced();
-        };
-    });
-}
+            let real = Number(val.real) || 0;
+            let imag = Number(val.imag) || 0;
+            let checked = val.useImag ? 'checked' : '';
+            const row = document.createElement('div');
+            row.className = 'input-row';
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="polo-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${real}">
+                <input type="number" id="polo-planta-input-${idx}" step="0.01" min="-10" max="10" value="${real}">
+                <label >
+                    <input type="checkbox" id="polo-planta-imag-check-${idx}" style="accent-color:#2196f3; border-radius:50%;" ${checked}>
+                    <i>Im</i>
+                </label>
+                <input type="number" id="polo-planta-imag-input-${idx}" step="0.01" min="-10" max="10" value="${imag}" style="width:55px; margin-left:4px; display:${val.useImag ? 'inline-block' : 'none'};">
+                <button type="button" class="remove-btn" id="remove-planta-polo-${idx}" title="Remover Polo">&times;</button>
+            `;
+            polosList.appendChild(row);
 
-function setupBtns() {
-    document.getElementById('add-planta-polo-btn').onclick = function() {
-        polosPlanta.push(-1);
-        renderInputs();
-        atualizarTudo();
-    };
-    document.getElementById('add-planta-zero-btn').onclick = function() {
-        zerosPlanta.push(0);
-        renderInputs();
-        atualizarTudo();
-    };
-    document.getElementById('add-controlador-polo-btn').onclick = function() {
-        polosControlador.push(-1);
-        renderInputs();
-        atualizarTudo();
-    };
-    document.getElementById('add-controlador-zero-btn').onclick = function() {
-        zerosControlador.push(0);
-        renderInputs();
-        atualizarTudo();
-    };
-    document.getElementById('ganho-controlador').oninput = atualizarTudo;
-    document.getElementById('input-t-fechada-grafico').oninput = atualizarTudo;
-
-    // Sincronização entre input e slider de amplitude
-    const inputAmp = document.getElementById('input-a-fechada-grafico');
-    const sliderAmp = document.getElementById('slider-a-fechada-grafico');
-    inputAmp.oninput = function() {
-        sliderAmp.value = this.value;
-        atualizarTudoDebounced();
-    };
-    sliderAmp.oninput = function() {
-        inputAmp.value = this.value;
-        atualizarTudoDebounced();
-    };
-
-    // Mudanças nos checkboxes atualizam o 1º gráfico
-    const cbSem = document.getElementById('cb-base-sem');
-    const cbCom = document.getElementById('cb-base-com');
-    const cbOpen = document.getElementById('cb-base-open');
-    const cbErr = document.getElementById('cb-closed-error');
-    const cbQ   = document.getElementById('cb-closed-perturb');
-
-    [cbSem, cbCom, cbOpen, cbErr, cbQ].forEach(el => el && (el.onchange = atualizarTudoDebounced));
-}
-
-// Helpers: contar zeros/polos em 0 e corrigir \frac{num}{den}
-function countZeroAtZero(arr, tol = 1e-8) {
-    if (!Array.isArray(arr)) return 0;
-    return arr.filter(v => Math.abs(parseFloat(v)) < tol).length;
-}
-function effectiveZeroPoles(arr, tol = 1e-8) {
-    // Se a lista de polos estiver vazia, assuma 1 polo em 0 => den = s
-    if (!Array.isArray(arr) || arr.length === 0) return 1;
-    return countZeroAtZero(arr, tol);
-}
-function fixFracWithS(latex, kZeros, kPoles, varName = 's') {
-    if (!latex) return latex;
-    const sZeros = kZeros > 1 ? `${varName}^${kZeros}` : varName;
-    const sPoles = kPoles > 1 ? `${varName}^${kPolos}` : varName;
-    // Corrige todos os \frac{num}{den} do LaTeX
-    return latex.replace(/\\frac\{\s*([^}]*)\s*\}\{\s*([^}]*)\s*\}/g, (m, num, den) => {
-        let newNum = num.trim();
-        let newDen = den.trim();
-        if (kZeros > 0 && /^1\s*$/.test(newNum)) newNum = sZeros;
-        if (kPoles > 0 && /^1\s*$/.test(newDen)) newDen = sPoles;
-        return `\\frac{${newNum}}{${newDen}}`;
-    });
-}
-
-async function atualizarTudo() {
-    // Validação: zeros não podem ser mais que polos
-    if (zerosPlanta.length > polosPlanta.length) {
-        alert("A planta não pode ter mais zeros do que polos!");
-        return;
-    }
-    if (zerosControlador.length > polosControlador.length) {
-        alert("O controlador não pode ter mais zeros do que polos!");
-        return;
-    }
-
-    // Monte os dados para o backend
-    const ganhoControlador = parseFloat(document.getElementById('ganho-controlador').value);
-    const t_perturb_fechada = parseFloat(document.getElementById('input-t-fechada-grafico').value);
-    // Use SEMPRE o valor do input de amplitude (sincronizado com slider)
-    const amp_perturb_fechada = parseFloat(document.getElementById('input-a-fechada-grafico').value);
-
-    const data = {
-        polos_planta: polosPlanta,
-        zeros_planta: zerosPlanta,
-        polos_controlador: polosControlador,
-        zeros_controlador: zerosControlador,
-        ganho_controlador: ganhoControlador,
-        t_perturb_fechada: t_perturb_fechada,
-        amp_perturb_fechada: amp_perturb_fechada
-    };
-
-    // Chame o backend normalmente (igual já faz)
-    const res = await fetch('/atualizar_pagina4', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    const json = await res.json();
-
-    // Quantidades de zeros/polos em s=0
-    const kZerosPlanta = countZeroAtZero(zerosPlanta);
-    const kPolosPlanta = effectiveZeroPoles(polosPlanta);
-    const kZerosCtrl   = countZeroAtZero(zerosControlador);
-    const kPolosCtrl   = effectiveZeroPoles(polosControlador);
-
-    // Corrigir LaTeX usando as quantidades acima
-    const lp_polin = fixFracWithS(json.latex_planta_polinomial, kZerosPlanta, kPolosPlanta, 's');
-    const lp_fator = fixFracWithS(json.latex_planta_fatorada,   kZerosPlanta, kPolosPlanta, 's');
-    const lp_parc  = fixFracWithS(json.latex_planta_parcial,    kZerosPlanta, kPolosPlanta, 's');
-
-    const lc_polin = fixFracWithS(json.latex_controlador_polinomial, kZerosCtrl, kPolosCtrl, 's');
-    const lc_fator = fixFracWithS(json.latex_controlador_fatorada,   kZerosCtrl, kPolosCtrl, 's');
-    const lc_parc  = fixFracWithS(json.latex_controlador_parcial,    kZerosCtrl, kPolosCtrl, 's');
-
-    document.getElementById("ft-planta-polinomial").innerHTML = lp_polin || "Erro ao carregar forma polinomial";
-    document.getElementById("ft-planta-fatorada").innerHTML   = lp_fator || "Erro ao carregar forma fatorada";
-    document.getElementById("ft-planta-parcial").innerHTML    = lp_parc  || "Erro ao carregar fração parcial";
-
-    document.getElementById("ft-controlador-polinomial").innerHTML = lc_polin || "Erro ao carregar forma polinomial";
-    document.getElementById("ft-controlador-fatorada").innerHTML   = lc_fator || "Erro ao carregar forma fatorada";
-    document.getElementById("ft-controlador-parcial").innerHTML    = lc_parc  || "Erro ao carregar fração parcial";
-
-    if (window.MathJax) MathJax.typesetPromise();
-
-    // ÚNICO gráfico de degrau: montar conforme checkboxes
-    const tracesClosed = [];
-    const base = (json.plot_closed_data && json.plot_closed_data.data) ? json.plot_closed_data.data : [];
-
-    if (document.getElementById('cb-base-sem')?.checked && base[0]) {
-        tracesClosed.push(base[0]); // Sem Perturbação
-    }
-    if (document.getElementById('cb-base-com')?.checked && base[1]) {
-        tracesClosed.push(base[1]); // Com Perturbação (laranja tracejada vem do backend)
-    }
-    if (document.getElementById('cb-base-open')?.checked && base[2]) {
-        tracesClosed.push(base[2]); // Malha Aberta
-    }
-    if (document.getElementById('cb-closed-error')?.checked && json.error_closed_data) {
-        tracesClosed.push(json.error_closed_data.data[0]); // Erro E/R (preto)
-    }
-    if (document.getElementById('cb-closed-perturb')?.checked && json.perturb_closed_data) {
-        tracesClosed.push(json.perturb_closed_data.data[0]); // Y/Q (roxo tracejado)
-    }
-
-    Plotly.newPlot('plot_closed', tracesClosed, json.plot_closed_data.layout);
-
-    // Atualize os demais gráficos
-    await atualizarPZClosed();
-    await atualizarBode();
-    await atualizarNyquist();
-}
-
-window.onload = function() {
-    renderInputs();
-    setupBtns();
-    atualizarTudo();
-};
-
-document.getElementById('select-ft-planta').onchange = function() {
-    let val = this.value;
-    document.getElementById('ft-planta-fatorada').style.display = val === 'fatorada' ? '' : 'none';
-    document.getElementById('ft-planta-polinomial').style.display = val === 'polinomial' ? '' : 'none';
-    document.getElementById('ft-planta-parcial').style.display = val === 'parcial' ? '' : 'none';
-};
-document.getElementById('select-ft-controlador').onchange = function() {
-    let val = this.value;
-    document.getElementById('ft-controlador-fatorada').style.display = val === 'fatorada' ? '' : 'none';
-    document.getElementById('ft-controlador-polinomial').style.display = val === 'polinomial' ? '' : 'none';
-    document.getElementById('ft-controlador-parcial').style.display = val === 'parcial' ? '' : 'none';
-};
-
-function toggleSection(btnId, sectionId) {
-    const btn = document.getElementById(btnId);
-    const section = document.getElementById(sectionId);
-    btn.onclick = function() {
-        if (section.style.display === "none") {
-            section.style.display = "";
-            btn.innerHTML = "&#x25BC;";
-        } else {
-            section.style.display = "none";
-            btn.innerHTML = "&#x25B6;";
-        }
-    };
-}
-
-// Associe cada botão à sua seção
-window.addEventListener('DOMContentLoaded', function() {
-    toggleSection('seta-grafico-closed', 'container-plot-closed');
-    toggleSection('seta-grafico-pz-closed', 'container-plot-pz-closed');
-    toggleSection('seta-grafico-bode', 'container-plot-bode');
-    toggleSection('seta-grafico-nyquist', 'nyquist-img-container');
-});
-
-async function atualizarNyquist() {
-    const data = {
-        polos_planta: polosPlanta,
-        zeros_planta: zerosPlanta,
-        polos_controlador: polosControlador,
-        zeros_controlador: zerosControlador,
-        ganho_controlador: parseFloat(document.getElementById('ganho-controlador').value)
-    };
-    const res = await fetch('/nyquist_pagina4', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    const json = await res.json();
-    document.getElementById('nyquist-img').src = "data:image/png;base64," + json.nyquist_img;
-}
-
-async function atualizarPZClosed() {
-    const tipo = document.getElementById('tipo-diagrama-pz').value;
-    let data = {
-        polos_planta: polosPlanta,
-        zeros_planta: zerosPlanta,
-        polos_controlador: polosControlador,
-        zeros_controlador: zerosControlador,
-        ganho_controlador: parseFloat(document.getElementById('ganho-controlador').value),
-        tipo: tipo // Envia o tipo para o backend
-    };
-
-    // Lógica didática para cada tipo:
-    // - Planta: mostra apenas polos e zeros da planta (G(s))
-    // - Controlador: mostra apenas polos e zeros do controlador (Gc(s))
-    // - Malha Fechada: mostra polos e zeros do sistema em malha fechada (G(s)*Gc(s)/(1+G(s)*Gc(s)))
-    // - Malha Aberta: mostra polos e zeros do sistema em malha aberta (G(s)*Gc(s))
-
-    const res = await fetch('/atualizar_pz_closed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    const json = await res.json();
-    Plotly.newPlot('plot_pz_closed', json.plot_pz_closed.data, json.plot_pz_closed.layout);
-}
-
-// Atualiza o diagrama ao trocar o tipo
-document.getElementById('tipo-diagrama-pz').onchange = atualizarPZClosed;
-
-async function atualizarBode() {
-    const data = {
-        polos_planta: polosPlanta,
-        zeros_planta: zerosPlanta,
-        polos_controlador: polosControlador,
-        zeros_controlador: zerosControlador,
-        ganho_controlador: parseFloat(document.getElementById('ganho-controlador').value)
-    };
-    const res = await fetch('/atualizar_bode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    const json = await res.json();
-    Plotly.newPlot('plot_bode', json.bode_data.data, json.bode_data.layout);
-}
-
-// Menu hamburguer igual pagina2: abre ao passar mouse, fecha ao sair
-document.addEventListener('DOMContentLoaded', function() {
-    const menu = document.querySelector('.menu');
-    const menuContent = document.querySelector('.menu-content');
-    let closeMenuTimeout = null;
-
-    menu.addEventListener('mouseenter', () => {
-        if (closeMenuTimeout) {
-            clearTimeout(closeMenuTimeout);
-            closeMenuTimeout = null;
-        }
-        menu.classList.add('open');
-        menuContent.style.display = 'block';
-    });
-
-    menu.addEventListener('mouseleave', () => {
-        closeMenuTimeout = setTimeout(() => {
-            menu.classList.remove('open');
-            menuContent.style.display = 'none';
-        }, 300); // 0.5 segundos
-    });
-
-    // Se o mouse voltar antes do timeout, cancela o fechamento
-    menu.addEventListener('mouseenter', () => {
-        if (closeMenuTimeout) {
-            clearTimeout(closeMenuTimeout);
-            closeMenuTimeout = null;
-        }
-        menu.classList.add('open');
-        menuContent.style.display = 'block';
-    });
-
-    document.getElementById('dark-mode-toggle').addEventListener('change', (event) => {
-        document.body.classList.toggle('dark-mode', event.target.checked);
-    });
-    // Feedback modal
-    document.getElementById('abrir-feedback').onclick = function() {
-        document.getElementById('modal-feedback').style.display = 'block';
-    };
-    document.getElementById('fechar-modal').onclick = function() {
-        document.getElementById('modal-feedback').style.display = 'none';
-    };
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('modal-feedback')) {
-            document.getElementById('modal-feedback').style.display = 'none';
-        }
-    };
-    document.getElementById('enviar-feedback').onclick = async function() {
-        const texto = document.getElementById('feedback-texto').value;
-        const res = await fetch('/enviar_feedback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ feedback: texto })
+            document.getElementById(`polo-planta-input-${idx}`).oninput = function() {
+                polosPlanta[idx].real = Number(this.value) || 0;
+                document.getElementById(`polo-planta-slider-${idx}`).value = this.value;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`polo-planta-slider-${idx}`).oninput = function() {
+                document.getElementById(`polo-planta-input-${idx}`).value = this.value;
+                polosPlanta[idx].real = Number(this.value) || 0;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`polo-planta-imag-check-${idx}`).onchange = function() {
+                const imagInput = document.getElementById(`polo-planta-imag-input-${idx}`);
+                polosPlanta[idx].useImag = this.checked;
+                if (this.checked) {
+                    imagInput.style.display = 'inline-block';
+                } else {
+                    imagInput.style.display = 'none';
+                    polosPlanta[idx].imag = 0; // SEMPRE zero quando desmarcado
+                }
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`polo-planta-imag-input-${idx}`).oninput = function() {
+                polosPlanta[idx].imag = Number(this.value) || 0;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`remove-planta-polo-${idx}`).onclick = function() {
+                if (polosPlanta.length > 1) {
+                    polosPlanta.splice(idx, 1);
+                    renderInputs();
+                    atualizarTudoDebounced();
+                }
+            };
         });
-        if (res.ok) {
-            alert('Feedback enviado com sucesso!');
-            document.getElementById('modal-feedback').style.display = 'none';
-            document.getElementById('feedback-texto').value = '';
-        } else {
-            alert('Erro ao enviar feedback.');
+
+        // Planta - Zeros (reais)
+        const zerosList = document.getElementById('planta-zeros-list');
+        zerosList.innerHTML = '';
+        zerosPlanta.forEach((val, idx) => {
+            const row = document.createElement('div');
+            row.className = 'input-row';
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="zero-planta-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+                <input type="number" id="zero-planta-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
+                <button type="button" class="remove-btn" id="remove-planta-zero-${idx}" title="Remover Zero">&times;</button>
+            `;
+            zerosList.appendChild(row);
+            document.getElementById(`zero-planta-input-${idx}`).oninput = function() {
+                zerosPlanta[idx] = parseFloat(this.value);
+                document.getElementById(`zero-planta-slider-${idx}`).value = this.value;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`zero-planta-slider-${idx}`).oninput = function() {
+                zerosPlanta[idx] = parseFloat(this.value);
+                document.getElementById(`zero-planta-input-${idx}`).value = this.value;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`remove-planta-zero-${idx}`).onclick = function() {
+                zerosPlanta.splice(idx, 1);
+                renderInputs();
+                atualizarTudoDebounced();
+            };
+        });
+
+        // Controlador - Polos
+        const polosListC = document.getElementById('controlador-polos-list');
+        polosListC.innerHTML = '';
+        polosControlador.forEach((val, idx) => {
+            if (!(val && typeof val === 'object' && 'real' in val)) {
+                polosControlador[idx] = { real: Number(val) || 0, imag: 0, useImag: false };
+                val = polosControlador[idx];
+            }
+            let real = Number(val.real) || 0;
+            let imag = Number(val.imag) || 0;
+            let checked = val.useImag ? 'checked' : '';
+            const row = document.createElement('div');
+            row.className = 'input-row';
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="polo-controlador-slider-${idx}" min="-10" max="10" step="0.01" value="${real}">
+                <input type="number" id="polo-controlador-input-${idx}" step="0.01" min="-10" max="10" value="${real}">
+                <label >
+                    <input type="checkbox" id="polo-controlador-imag-check-${idx}" style="accent-color:#2196f3; border-radius:100%;" ${checked}>
+                    <i>Im</i>
+                </label>
+                <input type="number" id="polo-controlador-imag-input-${idx}" step="0.01" min="-10" max="10" value="${imag}" style="width:55px; margin-left:4px; display:${val.useImag ? 'inline-block' : 'none'};">
+                <button type="button" class="remove-btn" id="remove-controlador-polo-${idx}" title="Remover Polo">&times;</button>
+            `;
+            polosListC.appendChild(row);
+
+            document.getElementById(`polo-controlador-input-${idx}`).oninput = function() {
+                polosControlador[idx].real = Number(this.value) || 0;
+                document.getElementById(`polo-controlador-slider-${idx}`).value = this.value;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`polo-controlador-slider-${idx}`).oninput = function() {
+                document.getElementById(`polo-controlador-input-${idx}`).value = this.value;
+                polosControlador[idx].real = Number(this.value) || 0;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`polo-controlador-imag-check-${idx}`).onchange = function() {
+                const imagInput = document.getElementById(`polo-controlador-imag-input-${idx}`);
+                polosControlador[idx].useImag = this.checked;
+                if (this.checked) {
+                    imagInput.style.display = 'inline-block';
+                } else {
+                    imagInput.style.display = 'none';
+                    polosControlador[idx].imag = 0; // SEMPRE zero quando desmarcado
+                }
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`polo-controlador-imag-input-${idx}`).oninput = function() {
+                polosControlador[idx].imag = Number(this.value) || 0;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`remove-controlador-polo-${idx}`).onclick = function() {
+                if (polosControlador.length > 1) {
+                    polosControlador.splice(idx, 1);
+                    renderInputs();
+                    atualizarTudoDebounced();
+                }
+            };
+        });
+
+        // Controlador - Zeros (reais)
+        const zerosListC = document.getElementById('controlador-zeros-list');
+        zerosListC.innerHTML = '';
+        zerosControlador.forEach((val, idx) => {
+            const row = document.createElement('div');
+            row.className = 'input-row';
+            row.innerHTML = `
+                <input type="range" class="param-slider" id="zero-controlador-slider-${idx}" min="-10" max="10" step="0.01" value="${val}">
+                <input type="number" id="zero-controlador-input-${idx}" step="0.01" min="-10" max="10" value="${val}">
+                <button type="button" class="remove-btn" id="remove-controlador-zero-${idx}" title="Remover Zero">&times;</button>
+            `;
+            zerosListC.appendChild(row);
+            document.getElementById(`zero-controlador-input-${idx}`).oninput = function() {
+                zerosControlador[idx] = parseFloat(this.value);
+                document.getElementById(`zero-controlador-slider-${idx}`).value = this.value;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`zero-controlador-slider-${idx}`).oninput = function() {
+                zerosControlador[idx] = parseFloat(this.value);
+                document.getElementById(`zero-controlador-input-${idx}`).value = this.value;
+                atualizarTudoDebounced();
+            };
+            document.getElementById(`remove-controlador-zero-${idx}`).onclick = function() {
+                zerosControlador.splice(idx, 1);
+                renderInputs();
+                atualizarTudoDebounced();
+            };
+        });
+    }
+
+    function setupBtns() {
+        document.getElementById('add-planta-polo-btn').onclick = function() {
+            polosPlanta.push({ real: -1, imag: 0, useImag: false });
+            renderInputs(); atualizarTudo();
+        };
+        document.getElementById('add-planta-zero-btn').onclick = function() {
+            zerosPlanta.push(0); renderInputs(); atualizarTudo();
+        };
+        document.getElementById('add-controlador-polo-btn').onclick = function() {
+            polosControlador.push({ real: -1, imag: 0, useImag: false });
+            renderInputs(); atualizarTudo();
+        };
+        document.getElementById('add-controlador-zero-btn').onclick = function() {
+            zerosControlador.push(0); renderInputs(); atualizarTudo();
+        };
+        document.getElementById('ganho-controlador').oninput = atualizarTudo;
+        document.getElementById('input-t-fechada-grafico').oninput = atualizarTudo;
+
+        const inputAmp = document.getElementById('input-a-fechada-grafico');
+        const sliderAmp = document.getElementById('slider-a-fechada-grafico');
+        inputAmp.oninput = function() { sliderAmp.value = this.value; atualizarTudoDebounced(); };
+        sliderAmp.oninput = function() { inputAmp.value = this.value; atualizarTudoDebounced(); };
+
+        const cbSem = document.getElementById('cb-base-sem');
+        const cbCom = document.getElementById('cb-base-com');
+        const cbOpen = document.getElementById('cb-base-open');
+        const cbErr  = document.getElementById('cb-closed-error');
+        const cbQ    = document.getElementById('cb-closed-perturb');
+        [cbSem, cbCom, cbOpen, cbErr, cbQ].forEach(el => el && (el.onchange = atualizarTudoDebounced));
+    }
+
+    // Helpers LaTeX — contam corretamente considerando objetos
+    function countZeroAtZero(arr, tol = 1e-8) {
+        if (!Array.isArray(arr)) return 0;
+        return arr.filter(v => {
+            if (v && typeof v === 'object' && 'real' in v) {
+                const re = Number(v.real) || 0;
+                const im = (v.useImag ? (Number(v.imag) || 0) : 0);
+                return Math.abs(re) < tol && Math.abs(im) < tol;
+            }
+            return Math.abs(parseFloat(v) || 0) < tol;
+        }).length;
+    }
+    function effectiveZeroPoles(arr, tol = 1e-8) {
+        if (!Array.isArray(arr) || arr.length === 0) return 1;
+        return countZeroAtZero(arr, tol);
+    }
+    function fixFracWithS(latex, kZeros, kPoles, varName = 's') {
+        if (!latex) return latex;
+        const sZeros = kZeros > 1 ? `${varName}^${kZeros}` : varName;
+        const sPoles = kPoles > 1 ? `${varName}^${kPoles}` : varName;
+        return latex.replace(/\\frac\{\s*([^}]*)\s*\}\{\s*([^}]*)\s*\}/g, (m, num, den) => {
+            let newNum = num.trim();
+            let newDen = den.trim();
+            if (kZeros > 0 && /^1\s*$/.test(newNum)) newNum = sZeros;
+            if (kPoles > 0 && /^1\s*$/.test(newDen)) newDen = sPoles;
+            return `\\frac{${newNum}}{${newDen}}`;
+        });
+    }
+
+    async function atualizarTudo() {
+        if (zerosPlanta.length > polosPlanta.length) {
+            alert("A planta não pode ter mais zeros do que polos!"); return;
         }
+        if (zerosControlador.length > polosControlador.length) {
+            alert("O controlador não pode ter mais zeros do que polos!"); return;
+        }
+
+        const ganhoControlador = parseFloat(document.getElementById('ganho-controlador').value);
+        const t_perturb_fechada = parseFloat(document.getElementById('input-t-fechada-grafico').value);
+        const amp_perturb_fechada = parseFloat(document.getElementById('input-a-fechada-grafico').value);
+
+        const data = {
+            polos_planta: convertToBackend(polosPlanta),
+            zeros_planta: convertToBackend(zerosPlanta),
+            polos_controlador: convertToBackend(polosControlador),
+            zeros_controlador: convertToBackend(zerosControlador),
+            ganho_controlador: ganhoControlador,
+            t_perturb_fechada: t_perturb_fechada,
+            amp_perturb_fechada: amp_perturb_fechada
+        };
+
+        const res = await fetch('/atualizar_pagina4', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const json = await res.json();
+
+        const kZerosPlanta = countZeroAtZero(zerosPlanta);
+        const kPolosPlanta = effectiveZeroPoles(polosPlanta);
+        const kZerosCtrl   = countZeroAtZero(zerosControlador);
+        const kPolosCtrl   = effectiveZeroPoles(polosControlador);
+
+        const lp_polin = fixFracWithS(json.latex_planta_polinomial, kZerosPlanta, kPolosPlanta, 's');
+        const lp_fator = fixFracWithS(json.latex_planta_fatorada,   kZerosPlanta, kPolosPlanta, 's');
+        const lp_parc  = fixFracWithS(json.latex_planta_parcial,    kZerosPlanta, kPolosPlanta, 's');
+
+        const lc_polin = fixFracWithS(json.latex_controlador_polinomial, kZerosCtrl, kPolosCtrl, 's');
+        const lc_fator = fixFracWithS(json.latex_controlador_fatorada,   kZerosCtrl, kPolosCtrl, 's');
+        const lc_parc  = fixFracWithS(json.latex_controlador_parcial,    kZerosCtrl, kPolosCtrl, 's');
+
+        document.getElementById("ft-planta-polinomial").innerHTML = lp_polin || "Erro ao carregar forma polinomial";
+        document.getElementById("ft-planta-fatorada").innerHTML   = lp_fator || "Erro ao carregar forma fatorada";
+        document.getElementById("ft-planta-parcial").innerHTML    = lp_parc  || "Erro ao carregar fração parcial";
+
+        document.getElementById("ft-controlador-polinomial").innerHTML = lc_polin || "Erro ao carregar forma polinomial";
+        document.getElementById("ft-controlador-fatorada").innerHTML   = lc_fator || "Erro ao carregar forma fatorada";
+        document.getElementById("ft-controlador-parcial").innerHTML    = lc_parc  || "Erro ao carregar fração parcial";
+
+        if (window.MathJax) MathJax.typesetPromise();
+
+        const tracesClosed = [];
+        const base = (json.plot_closed_data && json.plot_closed_data.data) ? json.plot_closed_data.data : [];
+        if (document.getElementById('cb-base-sem')?.checked && base[0]) tracesClosed.push(base[0]);
+        if (document.getElementById('cb-base-com')?.checked && base[1]) tracesClosed.push(base[1]);
+        if (document.getElementById('cb-base-open')?.checked && base[2]) tracesClosed.push(base[2]);
+        if (document.getElementById('cb-closed-error')?.checked && json.error_closed_data) tracesClosed.push(json.error_closed_data.data[0]);
+        if (document.getElementById('cb-closed-perturb')?.checked && json.perturb_closed_data) tracesClosed.push(json.perturb_closed_data.data[0]);
+
+        Plotly.newPlot('plot_closed', tracesClosed, json.plot_closed_data.layout);
+
+        await atualizarPZClosed();
+        await atualizarBode();
+        await atualizarNyquist();
+    }
+
+    window.onload = function() {
+        renderInputs();
+        setupBtns();
+        atualizarTudo();
     };
-    document.getElementById('dark-mode-toggle-btn').addEventListener('click', function() {
-        document.body.classList.toggle('dark-mode');
-        // Troca o ícone conforme o modo
-        document.getElementById('dark-mode-icon').textContent =
-            document.body.classList.contains('dark-mode') ? '🌞' : '🌙';
+
+    document.getElementById('select-ft-planta').onchange = function() {
+        let val = this.value;
+        document.getElementById('ft-planta-fatorada').style.display = val === 'fatorada' ? '' : 'none';
+        document.getElementById('ft-planta-polinomial').style.display = val === 'polinomial' ? '' : 'none';
+        document.getElementById('ft-planta-parcial').style.display = val === 'parcial' ? '' : 'none';
+    };
+    document.getElementById('select-ft-controlador').onchange = function() {
+        let val = this.value;
+        document.getElementById('ft-controlador-fatorada').style.display = val === 'fatorada' ? '' : 'none';
+        document.getElementById('ft-controlador-polinomial').style.display = val === 'polinomial' ? '' : 'none';
+        document.getElementById('ft-controlador-parcial').style.display = val === 'parcial' ? '' : 'none';
+    };
+
+    function toggleSection(btnId, sectionId) {
+        const btn = document.getElementById(btnId);
+        const section = document.getElementById(sectionId);
+        btn.onclick = function() {
+            if (section.style.display === "none") {
+                section.style.display = "";
+                btn.innerHTML = "&#x25BC;";
+            } else {
+                section.style.display = "none";
+                btn.innerHTML = "&#x25B6;";
+            }
+        };
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        toggleSection('seta-grafico-closed', 'container-plot-closed');
+        toggleSection('seta-grafico-pz-closed', 'container-plot-pz-closed');
+        toggleSection('seta-grafico-bode', 'container-plot-bode');
+        toggleSection('seta-grafico-nyquist', 'nyquist-img-container');
     });
-});
+
+    async function atualizarNyquist() {
+        const data = {
+            polos_planta: convertToBackend(polosPlanta),
+            zeros_planta: convertToBackend(zerosPlanta),
+            polos_controlador: convertToBackend(polosControlador),
+            zeros_controlador: convertToBackend(zerosControlador),
+            ganho_controlador: parseFloat(document.getElementById('ganho-controlador').value)
+        };
+        const res = await fetch('/nyquist_pagina4', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const json = await res.json();
+        document.getElementById('nyquist-img').src = "data:image/png;base64," + json.nyquist_img;
+    }
+
+    async function atualizarPZClosed() {
+        const tipo = document.getElementById('tipo-diagrama-pz').value;
+        const data = {
+            polos_planta: convertToBackend(polosPlanta),
+            zeros_planta: convertToBackend(zerosPlanta),
+            polos_controlador: convertToBackend(polosControlador),
+            zeros_controlador: convertToBackend(zerosControlador),
+            ganho_controlador: parseFloat(document.getElementById('ganho-controlador').value),
+            tipo: tipo
+        };
+        const res = await fetch('/atualizar_pz_closed', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const json = await res.json();
+        Plotly.newPlot('plot_pz_closed', json.plot_pz_closed.data, json.plot_pz_closed.layout);
+    }
+    document.getElementById('tipo-diagrama-pz').onchange = atualizarPZClosed;
+
+    async function atualizarBode() {
+        const data = {
+            polos_planta: convertToBackend(polosPlanta),
+            zeros_planta: convertToBackend(zerosPlanta),
+            polos_controlador: convertToBackend(polosControlador),
+            zeros_controlador: convertToBackend(zerosControlador),
+            ganho_controlador: parseFloat(document.getElementById('ganho-controlador').value)
+        };
+        const res = await fetch('/atualizar_bode', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const json = await res.json();
+        Plotly.newPlot('plot_bode', json.bode_data.data, json.bode_data.layout);
+    }
+
+    // Menu
+    document.addEventListener('DOMContentLoaded', function() {
+        const menu = document.querySelector('.menu');
+        const menuContent = document.querySelector('.menu-content');
+        let closeMenuTimeout = null;
+
+        menu.addEventListener('mouseenter', () => {
+            if (closeMenuTimeout) { clearTimeout(closeMenuTimeout); closeMenuTimeout = null; }
+            menu.classList.add('open');
+            menuContent.style.display = 'block';
+        });
+
+        menu.addEventListener('mouseleave', () => {
+            closeMenuTimeout = setTimeout(() => {
+                menu.classList.remove('open');
+                menuContent.style.display = 'none';
+            }, 300);
+        });
+
+        document.getElementById('dark-mode-toggle').addEventListener('change', (event) => {
+            document.body.classList.toggle('dark-mode', event.target.checked);
+            document.getElementById('dark-mode-icon').textContent =
+                document.body.classList.contains('dark-mode') ? '🌞' : '🌙';
+        });
+
+        document.getElementById('abrir-feedback').onclick = function() {
+            document.getElementById('modal-feedback').style.display = 'block';
+        };
+        document.getElementById('fechar-modal').onclick = function() {
+            document.getElementById('modal-feedback').style.display = 'none';
+        };
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('modal-feedback')) {
+                document.getElementById('modal-feedback').style.display = 'none';
+            }
+        };
+        document.getElementById('enviar-feedback').onclick = async function() {
+            const texto = document.getElementById('feedback-texto').value;
+            const res = await fetch('/enviar_feedback', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feedback: texto })
+            });
+            if (res.ok) {
+                alert('Feedback enviado com sucesso!');
+                document.getElementById('modal-feedback').style.display = 'none';
+                document.getElementById('feedback-texto').value = '';
+            } else {
+                alert('Erro ao enviar feedback.');
+            }
+        };
+    });
     </script>
 </body>
 </html>
